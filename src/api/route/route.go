@@ -24,5 +24,12 @@ func InitServer() *echo.Echo {
 	fakultas.PUT("/:id", handler.EditFakultasHandler)
 	fakultas.DELETE("/:id", handler.DeleteFakultasHandler)
 
+	prodi := v1.Group("/prodi")
+	prodi.GET("", handler.GetAllProdiHandler)
+	prodi.GET("/:id", handler.GetProdiByIdHandler)
+	prodi.POST("", handler.InsertProdiHandler)
+	prodi.PUT("/:id", handler.EditProdiHandler)
+	prodi.DELETE("/:id", handler.DeleteProdiHandler)
+
 	return app
 }
