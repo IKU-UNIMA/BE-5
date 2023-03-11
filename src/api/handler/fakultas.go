@@ -17,7 +17,7 @@ func GetAllFakultasHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	result := []response.Fakultas{}
 
-	if err := db.WithContext(ctx).Find(&result).Error; err != nil {
+	if err := db.WithContext(ctx).Order("id").Find(&result).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
