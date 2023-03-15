@@ -29,5 +29,6 @@ func MigrateMySQL() {
 		&model.Fakultas{},
 		&model.Prodi{},
 		&model.JenisDokumen{},
+		&model.JenisPenelitian{},
 	)
 }
