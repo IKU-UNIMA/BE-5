@@ -31,5 +31,8 @@ func InitServer() *echo.Echo {
 	prodi.PUT("/:id", handler.EditProdiHandler)
 	prodi.DELETE("/:id", handler.DeleteProdiHandler)
 
+	jenisDokumen := v1.Group("/jenis-dokumen")
+	jenisDokumen.GET("", handler.GetAllJenisDokumenHandler)
+
 	return app
 }
