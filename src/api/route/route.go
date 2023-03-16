@@ -34,5 +34,8 @@ func InitServer() *echo.Echo {
 	jenisDokumen := v1.Group("/jenis-dokumen")
 	jenisDokumen.GET("", handler.GetAllJenisDokumenHandler)
 
+	jenisPenelitian := v1.Group("/jenis-penelitian")
+	jenisPenelitian.GET("", handler.GetAllJenisPenelitianHandler)
+
 	return app
 }
