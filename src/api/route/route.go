@@ -37,5 +37,8 @@ func InitServer() *echo.Echo {
 	jenisPenelitian := v1.Group("/jenis-penelitian")
 	jenisPenelitian.GET("", handler.GetAllJenisPenelitianHandler)
 
+	kategoriCapaian := v1.Group("/kategori-capaian")
+	kategoriCapaian.GET("", handler.GetAllKategoriCapaianHandler)
+
 	return app
 }
