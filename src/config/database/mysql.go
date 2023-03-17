@@ -34,5 +34,6 @@ func MigrateMySQL() {
 		&model.Akun{},
 		&model.Admin{},
 		&model.Dosen{},
+		&model.Rektor{},
 	)
 }
