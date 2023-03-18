@@ -3,6 +3,8 @@ package route
 import (
 	"be-5/src/api/handler"
 
+	customMiddleware "be-5/src/api/middleware"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -39,6 +41,10 @@ func InitServer() *echo.Echo {
 
 	kategoriCapaian := v1.Group("/kategori-capaian")
 	kategoriCapaian.GET("", handler.GetAllKategoriCapaianHandler)
+
+	akun := v1.Group("/akun")
+	akun.POST("/login", handler.LoginHandler)
+	akun.PATCH("/password/change", handler.ChangePasswordHandler, customMiddleware.Authentication)
 
 	return app
 }
