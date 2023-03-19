@@ -28,7 +28,12 @@ func GenerateJWT(id int, role, bagian string) string {
 }
 
 func ValidateJWT(c echo.Context) (interface{}, error) {
-	header := c.Request().Header["Authorization"][0]
+	arrHeader := c.Request().Header["Authorization"]
+	if len(arrHeader) < 1 {
+		return nil, errors.New(JWT_ERROR)
+	}
+
+	header := arrHeader[0]
 	bearer := strings.HasPrefix(strings.ToLower(header), "bearer")
 	if !bearer {
 		return nil, errors.New(JWT_ERROR)
