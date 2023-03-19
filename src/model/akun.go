@@ -6,4 +6,5 @@ type Akun struct {
 	Password string `gorm:"type:varchar(255)"`
 	Role     string `gorm:"type:enum('rektor', 'dosen', 'admin')"`
 	Admin    Admin  `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE"`
+	Dosen    Dosen  `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE"`
 }
