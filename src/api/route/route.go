@@ -46,5 +46,12 @@ func InitServer() *echo.Echo {
 	akun.POST("/login", handler.LoginHandler)
 	akun.PATCH("/password/change", handler.ChangePasswordHandler, customMiddleware.Authentication)
 
+	dosen := v1.Group("/dosen", customMiddleware.Authentication)
+	dosen.GET("", handler.GetAllDosenHandler)
+	dosen.GET("/:id", handler.GetDosenByIdHandler)
+	dosen.POST("", handler.InsertDosenHandler, customMiddleware.GrantAdmin)
+	dosen.PUT("/:id", handler.EditDosenHandler, customMiddleware.GrantAdmin)
+	dosen.DELETE("/:id", handler.DeleteDosenHandler, customMiddleware.GrantAdmin)
+
 	return app
 }
