@@ -47,7 +47,8 @@ func InitServer() *echo.Echo {
 	akun.PATCH("/password/change", handler.ChangePasswordHandler, customMiddleware.Authentication)
 	akun.PATCH("/password/reset/:id", handler.ResetPasswordHandler, customMiddleware.Authentication, customMiddleware.GrantAdmin)
 
-	profil := v1.Group("/profil")
+	profil := v1.Group("/profil", customMiddleware.Authentication)
+	profil.GET("", handler.GetProfilHandler)
 	profil.PATCH("", handler.EditProfilHandler)
 
 	dosen := v1.Group("/dosen", customMiddleware.Authentication)
