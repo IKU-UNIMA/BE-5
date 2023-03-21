@@ -6,7 +6,6 @@ import (
 	"be-5/src/config/database"
 	"be-5/src/model"
 	"be-5/src/util"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -65,8 +64,7 @@ func ChangePasswordHandler(c echo.Context) error {
 
 	if err := db.WithContext(ctx).First(data, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
-			msg := fmt.Sprintf("user dengan id %d tidak ditemukan", id)
-			return util.FailedResponse(c, http.StatusNotFound, []string{msg})
+			return util.FailedResponse(c, http.StatusNotFound, []string{"user tidak ditemukan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -85,4 +83,30 @@ func ChangePasswordHandler(c echo.Context) error {
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
+}
+
+func ResetPasswordHandler(c echo.Context) error {
+	id, err := util.GetId(c)
+	if err != "" {
+		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+	}
+
+	db := database.InitMySQL()
+	ctx := c.Request().Context()
+
+	if err := db.WithContext(ctx).First(new(model.Akun), "id", id).Error; err != nil {
+		if err.Error() == util.NOT_FOUND_ERROR {
+			return util.FailedResponse(c, http.StatusNotFound, []string{"user tidak ditemukan"})
+		}
+
+		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+	}
+
+	password := util.GeneratePassword()
+
+	if err := db.WithContext(ctx).Table("akun").Where("id", id).Update("password", util.HashPassword(password)).Error; err != nil {
+		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+	}
+
+	return util.SuccessResponse(c, http.StatusOK, map[string]string{"password": password})
 }
