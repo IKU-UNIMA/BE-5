@@ -129,10 +129,6 @@ func InsertDosenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusNotFound, []string{"prodi tidak ditemukan"})
 	}
 
-	dosen := request.MapRequest()
-	dosen.ID = akun.ID
-	dosen.IdFakultas = idFakultas
-
 	if err := tx.WithContext(ctx).Create(akun).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
@@ -141,6 +137,10 @@ func InsertDosenHandler(c echo.Context) error {
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
+
+	dosen := request.MapRequest()
+	dosen.ID = akun.ID
+	dosen.IdFakultas = idFakultas
 
 	if err := tx.WithContext(ctx).Create(dosen).Error; err != nil {
 		tx.Rollback()
@@ -177,7 +177,7 @@ func EditDosenHandler(c echo.Context) error {
 	tx := db.Begin()
 	ctx := c.Request().Context()
 
-	if err := db.WithContext(ctx).First(new(model.Dosen)).Error; err != nil {
+	if err := db.WithContext(ctx).First(new(model.Dosen), id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
 			return util.FailedResponse(c, http.StatusNotFound, nil)
 		}
