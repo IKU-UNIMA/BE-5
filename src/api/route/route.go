@@ -58,6 +58,13 @@ func InitServer() *echo.Echo {
 	admin.PUT("/:id", handler.EditAdminHandler)
 	admin.DELETE("/:id", handler.DeleteAdminHandler)
 
+	rektor := v1.Group("/rektor")
+	rektor.GET("", handler.GetAllRektorHandler)
+	rektor.GET("/:id", handler.GetRektorByIdHandler)
+	rektor.POST("", handler.InsertRektorHandler)
+	rektor.PUT("/:id", handler.EditRektorHandler)
+	rektor.DELETE("/:id", handler.DeleteRektorHandler)
+
 	dosen := v1.Group("/dosen", customMiddleware.Authentication)
 	dosen.GET("", handler.GetAllDosenHandler)
 	dosen.GET("/:id", handler.GetDosenByIdHandler)
