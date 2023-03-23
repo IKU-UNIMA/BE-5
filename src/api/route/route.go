@@ -51,6 +51,13 @@ func InitServer() *echo.Echo {
 	profil.GET("", handler.GetProfilHandler)
 	profil.PATCH("", handler.EditProfilHandler)
 
+	admin := v1.Group("/admin")
+	admin.GET("", handler.GetAllAdminHandler)
+	admin.GET("/:id", handler.GetAdminByIdHandler)
+	admin.POST("", handler.InsertAdminHandler)
+	admin.PUT("/:id", handler.EditAdminHandler)
+	admin.DELETE("/:id", handler.DeleteAdminHandler)
+
 	dosen := v1.Group("/dosen", customMiddleware.Authentication)
 	dosen.GET("", handler.GetAllDosenHandler)
 	dosen.GET("/:id", handler.GetDosenByIdHandler)
