@@ -7,4 +7,5 @@ type Akun struct {
 	Role     string `gorm:"type:enum('rektor', 'dosen', 'admin')"`
 	Admin    Admin  `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE"`
 	Dosen    Dosen  `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE"`
+	Rektor   Rektor `gorm:"foreignKey:ID;constraint:OnDelete:CASCADE"`
 }
