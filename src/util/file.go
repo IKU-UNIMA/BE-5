@@ -25,3 +25,7 @@ func CheckFileType(file *multipart.FileHeader) error {
 
 	return errors.New(fmt.Sprint("unsupported file type for ", file.Filename))
 }
+
+func CreateFileUrl(fileId string) string {
+	return "https://drive.google.com/file/d/" + fileId + "/view"
+}
