@@ -15,6 +15,14 @@ func IsInteger(value string) bool {
 	return err == nil
 }
 
+func CountMin(x, y int) int {
+	if x < y {
+		return x
+	}
+
+	return y
+}
+
 func GetClaimsFromContext(c echo.Context) jwt.MapClaims {
 	claims := c.Get("claims")
 	return claims.(jwt.MapClaims)
