@@ -35,5 +35,10 @@ func MigrateMySQL() {
 		&model.Admin{},
 		&model.Dosen{},
 		&model.Rektor{},
+		&model.Paten{},
+		&model.KategoriPaten{},
+		&model.JenisKategoriPaten{},
+		&model.DokumenPaten{},
+		&model.PenulisPaten{},
 	)
 }
