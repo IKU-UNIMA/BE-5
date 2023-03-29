@@ -467,7 +467,7 @@ func patenAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Context
 	role := claims["role"].(string)
 	idDosen := int(claims["id"].(float64))
 	if role == string(util.ADMIN) {
-		return true
+		return claims["bagian"].(string) == util.IKU5
 	}
 
 	result := 0
