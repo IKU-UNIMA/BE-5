@@ -68,9 +68,9 @@ func InitServer() *echo.Echo {
 	dosen := v1.Group("/dosen", customMiddleware.Authentication)
 	dosen.GET("", handler.GetAllDosenHandler)
 	dosen.GET("/:id", handler.GetDosenByIdHandler)
-	dosen.POST("", handler.InsertDosenHandler, customMiddleware.GrantAdmin)
-	dosen.PUT("/:id", handler.EditDosenHandler, customMiddleware.GrantAdmin)
-	dosen.DELETE("/:id", handler.DeleteDosenHandler, customMiddleware.GrantAdmin)
+	dosen.POST("", handler.InsertDosenHandler, customMiddleware.GrantAdminUmum)
+	dosen.PUT("/:id", handler.EditDosenHandler, customMiddleware.GrantAdminUmum)
+	dosen.DELETE("/:id", handler.DeleteDosenHandler, customMiddleware.GrantAdminUmum)
 
 	paten := v1.Group("/paten", customMiddleware.Authentication)
 	paten.GET("", handler.GetAllPatenHandler)
