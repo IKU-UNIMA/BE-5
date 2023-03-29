@@ -72,6 +72,10 @@ func ValidateJWT(c echo.Context) (interface{}, error) {
 		return nil, errors.New(JWT_ERROR)
 	}
 
+	if _, ok := mapClaims["nama"].(string); !ok {
+		return nil, errors.New(JWT_ERROR)
+	}
+
 	if _, ok := mapClaims["role"].(string); !ok {
 		return nil, errors.New(JWT_ERROR)
 	}
