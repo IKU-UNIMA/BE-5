@@ -14,9 +14,10 @@ const JWT_ERROR = "login to process"
 
 var secret = env.GetSecretJWTEnv()
 
-func GenerateJWT(id int, role, bagian string) string {
+func GenerateJWT(id int, nama, role, bagian string) string {
 	claims := jwt.MapClaims{
 		"id":         id,
+		"nama":       nama,
 		"role":       role,
 		"bagian":     bagian,
 		"expires_at": time.Now().Add(12 * time.Hour).Unix(),

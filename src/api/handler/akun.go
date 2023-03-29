@@ -45,9 +45,9 @@ func LoginHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
-	token := util.GenerateJWT(data.ID, data.Role, bagian)
+	token := util.GenerateJWT(data.ID, nama, data.Role, bagian)
 
-	return util.SuccessResponse(c, http.StatusOK, response.Login{Nama: nama, Token: token})
+	return util.SuccessResponse(c, http.StatusOK, response.Login{Token: token})
 }
 
 func ChangePasswordHandler(c echo.Context) error {
