@@ -29,3 +29,26 @@ func GrantAdminUmum(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+func GrantDosen(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		claims := util.GetClaimsFromContext(c)
+		if claims["role"].(string) != string(util.DOSEN) {
+			return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		}
+
+		return next(c)
+	}
+}
+
+func GrantAdminAndDosen(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		claims := util.GetClaimsFromContext(c)
+		role := claims["role"].(string)
+		if role != string(util.ADMIN) && role != string(util.DOSEN) {
+			return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		}
+
+		return next(c)
+	}
+}

@@ -68,9 +68,20 @@ func InitServer() *echo.Echo {
 	dosen := v1.Group("/dosen", customMiddleware.Authentication)
 	dosen.GET("", handler.GetAllDosenHandler)
 	dosen.GET("/:id", handler.GetDosenByIdHandler)
-	dosen.POST("", handler.InsertDosenHandler, customMiddleware.GrantAdmin)
-	dosen.PUT("/:id", handler.EditDosenHandler, customMiddleware.GrantAdmin)
-	dosen.DELETE("/:id", handler.DeleteDosenHandler, customMiddleware.GrantAdmin)
+	dosen.POST("", handler.InsertDosenHandler, customMiddleware.GrantAdminUmum)
+	dosen.PUT("/:id", handler.EditDosenHandler, customMiddleware.GrantAdminUmum)
+	dosen.DELETE("/:id", handler.DeleteDosenHandler, customMiddleware.GrantAdminUmum)
+
+	paten := v1.Group("/paten", customMiddleware.Authentication)
+	paten.GET("", handler.GetAllPatenHandler)
+	paten.GET("/:id", handler.GetPatenByIdHandler)
+	paten.POST("", handler.InsertPatenHandler, customMiddleware.GrantDosen)
+	paten.PUT("/:id", handler.EditPatenHandler, customMiddleware.GrantDosen)
+	paten.DELETE("/:id", handler.DeletePatenHandler)
+	paten.GET("/kategori", handler.GetAllKategoriPatenHandler)
+	paten.GET("/dokumen/:id", handler.GetDokumenPatenByIdHandler)
+	paten.PUT("/dokumen/:id", handler.EditDokumenPatenHandler, customMiddleware.GrantDosen)
+	paten.DELETE("/dokumen/:id", handler.DeleteDokumenPatenHandler, customMiddleware.GrantDosen)
 
 	return app
 }
