@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"be-5/src/api/response"
+	"fmt"
+	"time"
+)
 
 type (
 	Pengabdian struct {
@@ -63,3 +67,22 @@ type (
 		JenisDokumen   JenisDokumen `gorm:"foreignKey:IdJenisDokumen"`
 	}
 )
+
+func (p *Pengabdian) MapToResponse() *response.Pengabdian {
+	tahunPelaksanaan := fmt.Sprintf("%d/%d", p.TahunPelaksanaan, p.TahunPelaksanaan+p.LamaKegiatan)
+	return &response.Pengabdian{
+		ID:               p.ID,
+		TahunPelaksanaan: tahunPelaksanaan,
+		LamaKegiatan:     p.LamaKegiatan,
+	}
+}
+
+func MapBatchPengabdianResponse(p []Pengabdian) []*response.Pengabdian {
+	res := []*response.Pengabdian{}
+	for i := 0; i < len(p)/2; i++ {
+		res = append(res, p[i].MapToResponse())
+		res = append(res, p[len(p)-1-i].MapToResponse())
+	}
+
+	return res
+}
