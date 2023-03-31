@@ -29,7 +29,7 @@ type (
 		TglSkPenugasan          time.Time           `gorm:"type:date"`
 		MitraLitabmas           string              `gorm:"type:varchar(255)"`
 		Dosen                   Dosen               `gorm:"foreignKey:IdDosen;OnDelete:CASCADES"`
-		Penulis                 []PenulisPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
+		Penulis                 []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
 		Dokumen                 []DokumenPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
 	}
 
@@ -45,11 +45,11 @@ type (
 		KategoriPengabdian []KategoriPengabdian `gorm:"foreignKey:IdJenisKategoriPengabdian;constraint:OnDelete:CASCADE"`
 	}
 
-	PenulisPengabdian struct {
+	AnggotaPengabdian struct {
 		ID           int `gorm:"primaryKey"`
 		IdPengabdian int
 		Nama         string `gorm:"type:text"`
-		JenisPenulis string `gorm:"type:enum('dosen', 'mahasiswa', 'lain')"`
+		JenisAnggota string `gorm:"type:enum('dosen', 'mahasiswa', 'eksternal')"`
 		Peran        string `gorm:"type:varchar(120)"`
 		IsActive     bool
 	}
