@@ -28,6 +28,7 @@ type (
 		NoSkPenugasan           string              `gorm:"type:varchar(255)"`
 		TglSkPenugasan          time.Time           `gorm:"type:date"`
 		MitraLitabmas           string              `gorm:"type:varchar(255)"`
+		Kategori                KategoriPengabdian  `gorm:"foreignKey:IdKategori"`
 		Dosen                   Dosen               `gorm:"foreignKey:IdDosen;OnDelete:CASCADES"`
 		Penulis                 []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
 		Dokumen                 []DokumenPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
@@ -77,11 +78,15 @@ func (p *Pengabdian) MapToResponse() *response.Pengabdian {
 	}
 }
 
-func MapBatchPengabdianResponse(p []Pengabdian) []*response.Pengabdian {
-	res := []*response.Pengabdian{}
-	for i := 0; i < len(p)/2; i++ {
-		res = append(res, p[i].MapToResponse())
-		res = append(res, p[len(p)-1-i].MapToResponse())
+func MapBatchPengabdianResponse(p []Pengabdian) []response.Pengabdian {
+	res := []response.Pengabdian{}
+	if len(p) < 2 {
+		res = append(res, *p[0].MapToResponse())
+	} else {
+		for i := 0; i < len(p)/2; i++ {
+			res = append(res, *p[i].MapToResponse())
+			res = append(res, *p[len(p)-1-i].MapToResponse())
+		}
 	}
 
 	return res
