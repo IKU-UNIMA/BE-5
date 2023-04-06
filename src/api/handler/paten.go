@@ -166,6 +166,10 @@ func InsertPatenHandler(c echo.Context) error {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis penulis tidak valid"})
 		}
 
+		if strings.Contains(err.Error(), "peran") {
+			return util.FailedResponse(c, http.StatusBadRequest, []string{"peran tidak valid"})
+		}
+
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
@@ -273,6 +277,10 @@ func EditPatenHandler(c echo.Context) error {
 		deleteBatchDokumenPaten(dokumenPaten)
 		if strings.Contains(err.Error(), "jenis_penulis") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis penulis tidak valid"})
+		}
+
+		if strings.Contains(err.Error(), "peran") {
+			return util.FailedResponse(c, http.StatusBadRequest, []string{"peran tidak valid"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
