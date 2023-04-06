@@ -80,7 +80,7 @@ func (p *Pengabdian) MapToResponse() *response.Pengabdian {
 
 func MapBatchPengabdianResponse(p []Pengabdian) []response.Pengabdian {
 	res := []response.Pengabdian{}
-	if len(p) < 2 {
+	if len(p) < 2 && len(p) != 0 {
 		res = append(res, *p[0].MapToResponse())
 	} else {
 		for i := 0; i < len(p)/2; i++ {
