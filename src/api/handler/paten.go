@@ -205,7 +205,7 @@ func EditPatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{errMapping.Error()})
 	}
 
-	if err := tx.WithContext(ctx).Create(paten).Error; err != nil {
+	if err := tx.WithContext(ctx).Where("id", id).Updates(paten).Error; err != nil {
 		tx.Rollback()
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
@@ -392,7 +392,7 @@ func EditDokumenPatenHandler(c echo.Context) error {
 		dokumenPaten.Nama = dFile.Name
 	}
 
-	if err := db.WithContext(ctx).Create(&dokumenPaten).Error; err != nil {
+	if err := db.WithContext(ctx).Where("id", id).Updates(&dokumenPaten).Error; err != nil {
 		if strings.Contains(err.Error(), "jenis_dokumen") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
 		}
