@@ -87,12 +87,12 @@ func InitServer() *echo.Echo {
 	pengabdian.GET("", handler.GetAllPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	pengabdian.GET("/:id", handler.GetPengabdianByIdHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	pengabdian.POST("", handler.InsertPengabdianHandler, customMiddleware.GrantDosen)
-	pengabdian.PUT("/:id", handler.EditPengabdianHandler, customMiddleware.GrantDosen)
-	pengabdian.DELETE("/:id", handler.DeletePengabdianHandler, customMiddleware.GrantDosen)
+	pengabdian.PUT("/:id", handler.EditPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	pengabdian.DELETE("/:id", handler.DeletePengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	pengabdian.GET("/kategori", handler.GetAllKategoriPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	pengabdian.GET("/dokumen/:id", handler.GetDokumenPengabdianByIdHandler, customMiddleware.GrantAdminIKU5AndDosen)
-	pengabdian.PUT("/dokumen/:id", handler.EditDokumenPengabdianHandler, customMiddleware.GrantDosen)
-	pengabdian.DELETE("/dokumen/:id", handler.DeleteDokumenPengabdianHandler, customMiddleware.GrantDosen)
+	pengabdian.PUT("/dokumen/:id", handler.EditDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	pengabdian.DELETE("/dokumen/:id", handler.DeleteDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 
 	return app
 }
