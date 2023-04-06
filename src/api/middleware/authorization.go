@@ -21,8 +21,8 @@ func GrantAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 func GrantAdminUmum(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		claims := util.GetClaimsFromContext(c)
-		if claims["role"].(string) != string(util.ADMIN) &&
-			claims["bagian"].(string) != "umum" {
+		if claims["role"].(string) != string(util.ADMIN) ||
+			claims["bagian"].(string) != "UMUM" {
 			return util.FailedResponse(c, http.StatusUnauthorized, nil)
 		}
 
@@ -46,6 +46,23 @@ func GrantAdminAndDosen(next echo.HandlerFunc) echo.HandlerFunc {
 		claims := util.GetClaimsFromContext(c)
 		role := claims["role"].(string)
 		if role != string(util.ADMIN) && role != string(util.DOSEN) {
+			return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		}
+
+		return next(c)
+	}
+}
+
+func GrantAdminIKU5AndDosen(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		claims := util.GetClaimsFromContext(c)
+		role := claims["role"].(string)
+		bagian := claims["bagian"].(string)
+		if role != string(util.ADMIN) && role != string(util.DOSEN) {
+			return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		}
+
+		if role == string(util.ADMIN) && bagian != "IKU 5" {
 			return util.FailedResponse(c, http.StatusUnauthorized, nil)
 		}
 
