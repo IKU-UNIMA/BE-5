@@ -201,6 +201,10 @@ func InsertPengabdianHandler(c echo.Context) error {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis anggota tidak valid"})
 		}
 
+		if strings.Contains(err.Error(), "peran") {
+			return util.FailedResponse(c, http.StatusBadRequest, []string{"peran tidak valid"})
+		}
+
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
@@ -307,6 +311,10 @@ func EditPengabdianHandler(c echo.Context) error {
 
 		if strings.Contains(err.Error(), "jenis_anggota") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis anggota tidak valid"})
+		}
+
+		if strings.Contains(err.Error(), "peran") {
+			return util.FailedResponse(c, http.StatusBadRequest, []string{"peran tidak valid"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
