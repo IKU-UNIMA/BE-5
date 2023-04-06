@@ -224,15 +224,8 @@ func EditPengabdianHandler(c echo.Context) error {
 	db := database.InitMySQL()
 	tx := db.Begin()
 	ctx := c.Request().Context()
-	claims := util.GetClaimsFromContext(c)
 
-	idDosen := 0
-	if err := db.WithContext(ctx).Table("pengabdian").Select("id_dosen").
-		Where("id", id).Scan(&idDosen).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	if idDosen != int(claims["id"].(float64)) {
+	if !pengabdianAuthorization(c, id, db, ctx) {
 		return util.FailedResponse(c, http.StatusUnauthorized, nil)
 	}
 
@@ -249,10 +242,6 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	if err := tx.WithContext(ctx).Omit("id_dosen").Where("id", id).Updates(pengabdian).Error; err != nil {
 		tx.Rollback()
-		if strings.Contains(err.Error(), "id_dosen") {
-			return util.FailedResponse(c, http.StatusNotFound, []string{"dosen tidak ditemukan"})
-		}
-
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
@@ -519,7 +508,12 @@ func DeleteDokumenPengabdianHandler(c echo.Context) error {
 
 func pengabdianAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Context) bool {
 	claims := util.GetClaimsFromContext(c)
+	role := claims["role"].(string)
 	idDosen := int(claims["id"].(float64))
+	if role == string(util.ADMIN) {
+		return true
+	}
+
 	result := 0
 	if err := db.WithContext(ctx).Table("pengabdian").Select("id_dosen").
 		Where("id", id).Scan(&result).Error; err != nil {
