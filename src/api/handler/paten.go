@@ -335,7 +335,7 @@ func GetDokumenPatenByIdHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	data := &response.DokumenPaten{}
 
-	if err := db.WithContext(ctx).First(data, "id", id).Error; err != nil {
+	if err := db.WithContext(ctx).Preload("JenisDokumen").First(data, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
 			return util.FailedResponse(c, http.StatusNotFound, nil)
 		}
