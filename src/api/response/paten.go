@@ -56,7 +56,7 @@ type (
 	}
 
 	DokumenPaten struct {
-		ID             int          `json:"id"`
+		ID             string       `json:"id"`
 		IdPaten        int          `json:"-"`
 		IdJenisDokumen int          `json:"-"`
 		Nama           string       `json:"nama"`
