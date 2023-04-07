@@ -262,7 +262,7 @@ func EditPatenHandler(c echo.Context) error {
 		penulis = append(penulis, *v.MapRequest(id))
 	}
 
-	if err := tx.WithContext(ctx).Delete(new(model.PenulisPaten), "id_paten", paten.ID).Error; err != nil {
+	if err := tx.WithContext(ctx).Delete(new(model.PenulisPaten), "id_paten", id).Error; err != nil {
 		tx.Rollback()
 		deleteBatchDokumenPaten(dokumenPaten)
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
