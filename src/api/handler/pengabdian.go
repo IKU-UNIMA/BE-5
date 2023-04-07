@@ -264,7 +264,7 @@ func EditPengabdianHandler(c echo.Context) error {
 
 			dokumen = append(dokumen, *req.Dokumen[i].MapRequest(&request.DokumenPengabdianPayload{
 				IdFile:       dFile.Id,
-				IdPengabdian: pengabdian.ID,
+				IdPengabdian: id,
 				NamaFile:     dFile.Name,
 				JenisFile:    dFile.MimeType,
 				Url:          util.CreateFileUrl(dFile.Id),
@@ -291,10 +291,10 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	anggota := []model.AnggotaPengabdian{}
 	for _, v := range req.Anggota {
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID))
+		anggota = append(anggota, *v.MapRequest(id))
 	}
 
-	if err := tx.WithContext(ctx).Delete(new(model.AnggotaPengabdian), "id_pengabdian", pengabdian.ID).Error; err != nil {
+	if err := tx.WithContext(ctx).Delete(new(model.AnggotaPengabdian), "id_pengabdian", id).Error; err != nil {
 		tx.Rollback()
 		if !deleteBatchDokumenPengabdian(dokumen) {
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
