@@ -128,7 +128,11 @@ func InsertPatenHandler(c echo.Context) error {
 			dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 			if err != nil {
 				tx.Rollback()
-				return c.JSON(http.StatusBadRequest, err.Error())
+				if strings.Contains(err.Error(), "unsupported") {
+					return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+				}
+
+				return util.FailedResponse(c, http.StatusInternalServerError, nil)
 			}
 
 			dokumenPaten = append(dokumenPaten, *req.Dokumen[i].MapRequest(&request.DokumenPatenPayload{
@@ -222,7 +226,11 @@ func EditPatenHandler(c echo.Context) error {
 			dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 			if err != nil {
 				tx.Rollback()
-				return c.JSON(http.StatusBadRequest, err.Error())
+				if strings.Contains(err.Error(), "unsupported") {
+					return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+				}
+
+				return util.FailedResponse(c, http.StatusInternalServerError, nil)
 			}
 
 			dokumenPaten = append(dokumenPaten, *req.Dokumen[i].MapRequest(&request.DokumenPatenPayload{
@@ -393,6 +401,10 @@ func EditDokumenPatenHandler(c echo.Context) error {
 
 		dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 		if err != nil {
+			if strings.Contains(err.Error(), "unsupported") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+			}
+
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
 		}
 
