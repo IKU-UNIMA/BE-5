@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -373,10 +374,13 @@ func EditDokumenPatenHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	idPaten := 0
-	if err := db.WithContext(ctx).Table("dokumen_paten").First(&idPaten, "id", id).Error; err != nil {
+	if err := db.WithContext(ctx).Model(new(model.DokumenPaten)).
+		Select("id_paten").First(&idPaten, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
 			return util.FailedResponse(c, http.StatusNotFound, nil)
 		}
+
+		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	if !patenAuthorization(c, idPaten, db, ctx) {
@@ -386,9 +390,6 @@ func EditDokumenPatenHandler(c echo.Context) error {
 	var dokumen *model.DokumenPaten
 	file, _ := c.FormFile("file")
 	if file != nil {
-		if err := storage.DeleteFile(id); err != nil {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
 
 		dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 		if err != nil {
@@ -397,7 +398,6 @@ func EditDokumenPatenHandler(c echo.Context) error {
 
 		dokumen = req.MapRequest(&request.DokumenPatenPayload{
 			IdFile:    dFile.Id,
-			IdPaten:   idPaten,
 			NamaFile:  dFile.Name,
 			JenisFile: dFile.MimeType,
 			Url:       util.CreateFileUrl(dFile.Id),
@@ -406,16 +406,32 @@ func EditDokumenPatenHandler(c echo.Context) error {
 		if dokumen.Nama == "" {
 			dokumen.Nama = dFile.Name
 		}
-	} else {
-		dokumen = req.MapRequest(&request.DokumenPatenPayload{})
-	}
 
-	if err := db.WithContext(ctx).Where("id", id).Updates(&dokumen).Error; err != nil {
-		if strings.Contains(err.Error(), "jenis_dokumen") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+		newId := dFile.Id
+		year, month, day := time.Now().Date()
+		tanggalUpload := fmt.Sprintf("%d-%d-%d", year, month, day)
+		updateDokumenQuery := fmt.Sprintf(`UPDATE dokumen_paten SET 
+			id='%s',id_jenis_dokumen=%d,nama='%s',nama_file='%s',jenis_file='%s',url='%s',keterangan='%s',tanggal_upload='%v' WHERE id='%s'`,
+			newId, dokumen.IdJenisDokumen, dokumen.Nama, dokumen.NamaFile, dokumen.JenisFile, dokumen.Url, dokumen.Keterangan, tanggalUpload, id)
+		if err := db.WithContext(ctx).Exec(updateDokumenQuery).Error; err != nil {
+			storage.DeleteFile(newId)
+			if strings.Contains(err.Error(), "jenis_dokumen") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+			}
+
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
 		}
 
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		storage.DeleteFile(id)
+	} else {
+		dokumen = req.MapRequest(&request.DokumenPatenPayload{})
+		if err := db.WithContext(ctx).Omit("tanggal_upload").Where("id", id).Updates(&dokumen).Error; err != nil {
+			if strings.Contains(err.Error(), "jenis_dokumen") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+			}
+
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		}
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -432,6 +448,8 @@ func DeleteDokumenPatenHandler(c echo.Context) error {
 			return util.FailedResponse(c, http.StatusNotFound, nil)
 		}
 	}
+
+	fmt.Print(idPaten)
 
 	if !patenAuthorization(c, idPaten, db, ctx) {
 		return util.FailedResponse(c, http.StatusUnauthorized, nil)
