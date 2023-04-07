@@ -443,30 +443,22 @@ func DeleteDokumenPatenHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	idPaten := 0
-	if err := db.WithContext(ctx).Table("dokumen_paten").First(&idPaten, "id", id).Error; err != nil {
+	if err := db.WithContext(ctx).Model(new(model.DokumenPaten)).
+		Select("id_paten").First(&idPaten, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
 			return util.FailedResponse(c, http.StatusNotFound, nil)
 		}
-	}
 
-	fmt.Print(idPaten)
+		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+	}
 
 	if !patenAuthorization(c, idPaten, db, ctx) {
 		return util.FailedResponse(c, http.StatusUnauthorized, nil)
 	}
 
-	idDokumen := ""
-	if err := db.WithContext(ctx).Select("id").Where("id", id).Find(&idDokumen).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	if idDokumen == "" {
-		return util.FailedResponse(c, http.StatusNotFound, nil)
-	}
-
 	tx := db.Begin()
 
-	query := tx.WithContext(ctx).Delete(new(model.DokumenPaten), id)
+	query := tx.WithContext(ctx).Delete(new(model.DokumenPaten), "id", id)
 	if query.Error != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
