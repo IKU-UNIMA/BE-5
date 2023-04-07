@@ -27,7 +27,9 @@ type (
 		Keterangan        string          `json:"keterangan"`
 		JenisPenelitian   JenisPenelitian `gorm:"foreignKey:IdJenisPenelitian" json:"jenis_penelitian"`
 		KategoriCapaian   KategoriCapaian `gorm:"foreignKey:IdKategoriCapaian" json:"kategori_capaian"`
-		Penulis           []PenulisPaten  `gorm:"foreignKey:IdPaten" json:"penulis"`
+		PenulisDosen      []PenulisPaten  `gorm:"foreignKey:IdPaten" json:"penulis_dosen"`
+		PenulisMahasiswa  []PenulisPaten  `gorm:"foreignKey:IdPaten" json:"penulis_mahasiswa"`
+		PenulisLain       []PenulisPaten  `gorm:"foreignKey:IdPaten" json:"penulis_lain"`
 		Dokumen           []DokumenPaten  `gorm:"foreignKey:IdPaten" json:"dokumen"`
 	}
 
@@ -44,18 +46,17 @@ type (
 	}
 
 	PenulisPaten struct {
-		ID           int    `json:"id"`
-		IdPaten      int    `json:"-"`
-		Nama         string `json:"nama"`
-		JenisPenulis string `json:"jenis_penulis"`
-		Urutan       int    `json:"urutan"`
-		Afiliasi     string `json:"afiliasi"`
-		Peran        string `json:"peran"`
-		IsAuthor     bool   `json:"is_author"`
+		ID       int    `json:"id"`
+		IdPaten  int    `json:"-"`
+		Nama     string `json:"nama"`
+		Urutan   int    `json:"urutan"`
+		Afiliasi string `json:"afiliasi"`
+		Peran    string `json:"peran"`
+		IsAuthor bool   `json:"is_author"`
 	}
 
 	DokumenPaten struct {
-		ID             int          `json:"id"`
+		ID             string       `json:"id"`
 		IdPaten        int          `json:"-"`
 		IdJenisDokumen int          `json:"-"`
 		Nama           string       `json:"nama"`

@@ -51,7 +51,7 @@ type (
 		IdPengabdian int
 		Nama         string `gorm:"type:text"`
 		JenisAnggota string `gorm:"type:enum('dosen', 'mahasiswa', 'eksternal')"`
-		Peran        string `gorm:"type:varchar(120)"`
+		Peran        string `gorm:"type:enum('Ketua', 'Anggota')"`
 		IsActive     bool
 	}
 

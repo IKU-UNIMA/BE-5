@@ -44,7 +44,7 @@ type (
 		JenisPenulis string `gorm:"type:enum('dosen', 'mahasiswa', 'lain')"`
 		Urutan       int    `gorm:"type:tinyint unsigned"`
 		Afiliasi     string `gorm:"type:varchar(255)"`
-		Peran        string `gorm:"type:varchar(120)"`
+		Peran        string `gorm:"type:enum('Penulis', 'Editor', 'Penerjemah', 'Penemu/Inventor')"`
 		IsAuthor     bool
 	}
 
