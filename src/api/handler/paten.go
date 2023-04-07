@@ -124,9 +124,9 @@ func InsertPatenHandler(c echo.Context) error {
 
 	dokumenPaten := []model.DokumenPaten{}
 	form, _ := c.MultipartForm()
-	if form != nil && paten.Dokumen != nil {
+	if form != nil && req.Dokumen != nil {
 		files := form.File["files"]
-		minLen := util.CountMin(len(paten.Dokumen), len(files))
+		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			file := files[i]
 			dFile, err := storage.CreateFile(file, patenFolderId)
@@ -143,7 +143,7 @@ func InsertPatenHandler(c echo.Context) error {
 				Url:       util.CreateFileUrl(dFile.Id),
 			}))
 
-			if paten.Dokumen[i].Nama == "" {
+			if req.Dokumen[i].Nama == "" {
 				dokumenPaten[i].Nama = dFile.Name
 			}
 		}
@@ -218,9 +218,9 @@ func EditPatenHandler(c echo.Context) error {
 
 	dokumenPaten := []model.DokumenPaten{}
 	form, _ := c.MultipartForm()
-	if form != nil && paten.Dokumen != nil {
+	if form != nil && req.Dokumen != nil {
 		files := form.File["files"]
-		minLen := util.CountMin(len(paten.Dokumen), len(files))
+		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			file := files[i]
 			dFile, err := storage.CreateFile(file, patenFolderId)
@@ -237,7 +237,7 @@ func EditPatenHandler(c echo.Context) error {
 				Url:       util.CreateFileUrl(dFile.Id),
 			}))
 
-			if paten.Dokumen[i].Nama == "" {
+			if req.Dokumen[i].Nama == "" {
 				dokumenPaten[i].Nama = dFile.Name
 			}
 		}
