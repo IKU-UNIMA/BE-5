@@ -9,6 +9,7 @@ import (
 	"be-5/src/model"
 	"be-5/src/util"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -95,8 +96,9 @@ func GetPatenByIdHandler(c echo.Context) error {
 
 func InsertPatenHandler(c echo.Context) error {
 	req := &request.Paten{}
-	if err := c.Bind(req); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+	reqData := c.FormValue("data")
+	if err := json.Unmarshal([]byte(reqData), req); err != nil {
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	claims := util.GetClaimsFromContext(c)
@@ -198,8 +200,9 @@ func EditPatenHandler(c echo.Context) error {
 	}
 
 	req := &request.Paten{}
-	if err := c.Bind(req); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+	reqData := c.FormValue("data")
+	if err := json.Unmarshal([]byte(reqData), req); err != nil {
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	tx := db.Begin()
@@ -351,8 +354,9 @@ func GetDokumenPatenByIdHandler(c echo.Context) error {
 func EditDokumenPatenHandler(c echo.Context) error {
 	id := c.Param("id")
 	req := &request.DokumenPaten{}
-	if err := c.Bind(req); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+	reqData := c.FormValue("data")
+	if err := json.Unmarshal([]byte(reqData), req); err != nil {
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
