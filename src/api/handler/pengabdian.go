@@ -145,8 +145,8 @@ func InsertPengabdianHandler(c echo.Context) error {
 
 	dokumen := []model.DokumenPengabdian{}
 	form, _ := c.MultipartForm()
-	if form != nil && req.Dokumen != nil {
-		files := form.File["files"]
+	files := form.File["files"]
+	if files != nil && req.Dokumen != nil {
 		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			dFile, err := storage.CreateFile(files[i], env.GetPengabdianFolderId())
@@ -251,8 +251,8 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	dokumen := []model.DokumenPengabdian{}
 	form, _ := c.MultipartForm()
-	if form != nil && req.Dokumen != nil {
-		files := form.File["files"]
+	files := form.File["files"]
+	if files != nil && req.Dokumen != nil {
 		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			file := files[i]
@@ -438,7 +438,7 @@ func EditDokumenPengabdianHandler(c echo.Context) error {
 	file, _ := c.FormFile("file")
 	if file != nil {
 		if err := storage.DeleteFile(id); err != nil {
-			return util.FailedResponse(c, http.StatusInternalServerError, []string{err.Error()})
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
 		}
 
 		dFile, err := storage.CreateFile(file, env.GetPengabdianFolderId())
