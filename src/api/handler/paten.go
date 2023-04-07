@@ -333,6 +333,21 @@ func GetDokumenPatenByIdHandler(c echo.Context) error {
 	id := c.Param("id")
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
+
+	idPaten := 0
+	if err := db.WithContext(ctx).Model(new(model.DokumenPaten)).
+		Select("id_paten").First(&idPaten, "id", id).Error; err != nil {
+		if err.Error() == util.NOT_FOUND_ERROR {
+			return util.FailedResponse(c, http.StatusNotFound, nil)
+		}
+
+		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+	}
+
+	if !patenAuthorization(c, idPaten, db, ctx) {
+		return util.FailedResponse(c, http.StatusUnauthorized, nil)
+	}
+
 	data := &response.DokumenPaten{}
 
 	if err := db.WithContext(ctx).Preload("JenisDokumen").First(data, "id", id).Error; err != nil {
