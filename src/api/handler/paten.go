@@ -44,7 +44,7 @@ func GetAllPatenHandler(c echo.Context) error {
 		}
 
 		if queryParams.Nama != "" {
-			if queryParams.Tahun != 0 {
+			if condition != "" {
 				condition += " AND UPPER(nama) LIKE '%" + strings.ToUpper(queryParams.Nama) + "%'"
 			} else {
 				condition = "UPPER(nama) LIKE '%" + strings.ToUpper(queryParams.Nama) + "%'"
