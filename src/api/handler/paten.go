@@ -81,8 +81,11 @@ func GetPatenByIdHandler(c echo.Context) error {
 	}
 
 	if err := db.WithContext(ctx).Table("paten").
-		Preload("JenisPenelitian").Preload("KategoriCapaian").Preload("Penulis").
+		Preload("JenisPenelitian").Preload("KategoriCapaian").
 		Preload("Dokumen").Preload("Dokumen.JenisDokumen").
+		Preload("PenulisDosen", "jenis_penulis = 'dosen'").
+		Preload("PenulisMahasiswa", "jenis_penulis = 'mahasiswa'").
+		Preload("PenulisLain", "jenis_penulis = 'lain'").
 		Where("id", id).First(data).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
