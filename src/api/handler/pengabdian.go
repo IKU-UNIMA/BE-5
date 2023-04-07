@@ -452,7 +452,10 @@ func EditDokumenPengabdianHandler(c echo.Context) error {
 			JenisFile:    dFile.MimeType,
 			Url:          util.CreateFileUrl(dFile.Id),
 		})
-		dokumen.Nama = dFile.Name
+
+		if dokumen.Nama == "" {
+			dokumen.Nama = dFile.Name
+		}
 	} else {
 		dokumen = req.MapRequest(&request.DokumenPengabdianPayload{})
 	}
