@@ -36,7 +36,9 @@ func GetAllPatenHandler(c echo.Context) error {
 	idDosen := int(claims["id"].(float64))
 
 	condition := ""
-	if role == string(util.ADMIN) {
+	if role == string(util.DOSEN) {
+		condition = fmt.Sprintf("id_dosen = %d", idDosen)
+	} else {
 		if queryParams.Tahun != 0 {
 			condition = fmt.Sprintf(`YEAR("tanggal") = %d`, queryParams.Tahun)
 		}
@@ -48,8 +50,6 @@ func GetAllPatenHandler(c echo.Context) error {
 				condition = "UPPER(nama) LIKE '%" + strings.ToUpper(queryParams.Nama) + "%'"
 			}
 		}
-	} else {
-		condition = fmt.Sprintf("id_dosen = %d", idDosen)
 	}
 
 	db := database.InitMySQL()
