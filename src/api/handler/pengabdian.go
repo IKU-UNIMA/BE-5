@@ -152,6 +152,10 @@ func InsertPengabdianHandler(c echo.Context) error {
 			dFile, err := storage.CreateFile(files[i], env.GetPengabdianFolderId())
 			if err != nil {
 				tx.Rollback()
+				if strings.Contains(err.Error(), "unsupported") {
+					return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+				}
+
 				return util.FailedResponse(c, http.StatusInternalServerError, nil)
 			}
 
@@ -259,6 +263,10 @@ func EditPengabdianHandler(c echo.Context) error {
 			dFile, err := storage.CreateFile(file, env.GetPengabdianFolderId())
 			if err != nil {
 				tx.Rollback()
+				if strings.Contains(err.Error(), "unsupported") {
+					return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+				}
+
 				return util.FailedResponse(c, http.StatusInternalServerError, nil)
 			}
 
@@ -443,6 +451,10 @@ func EditDokumenPengabdianHandler(c echo.Context) error {
 
 		dFile, err := storage.CreateFile(file, env.GetPengabdianFolderId())
 		if err != nil {
+			if strings.Contains(err.Error(), "unsupported") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+			}
+
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
 		}
 		dokumen = req.MapRequest(&request.DokumenPengabdianPayload{
