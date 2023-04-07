@@ -81,32 +81,14 @@ func GetPengabdianByIdHandler(c echo.Context) error {
 	}
 
 	if err := db.WithContext(ctx).Table("pengabdian").
-		Preload("Dokumen").Preload("Dokumen.JenisDokumen").First(&data, id).Error; err != nil {
+		Preload("Dokumen").Preload("Dokumen.JenisDokumen").
+		Preload("AnggotaDosen", "jenis_anggota='dosen'").
+		Preload("AnggotaMahasiswa", "jenis_anggota='mahasiswa'").
+		Preload("AnggotaEksternal", "jenis_anggota='eksternal'").First(&data, id).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	data.TglSkPenugasan = strings.Split(data.TglSkPenugasan, "T")[0]
-
-	tableAnggota := "anggota_pengabdian"
-	condition := fmt.Sprintf("id_pengabdian = %d && jenis_anggota = ?", id)
-	anggotaDosen := []response.AnggotaDosenPengabdian{}
-	if err := db.WithContext(ctx).Table(tableAnggota).Where(condition, "dosen").Find(&anggotaDosen).Error; err != nil {
-		util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	anggotaMhs := []response.AnggotaMahasiswaPengabdian{}
-	if err := db.WithContext(ctx).Table(tableAnggota).Where(condition, "mahasiswa").Find(&anggotaMhs).Error; err != nil {
-		util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	anggotaEksternal := []response.AnggotaEksternalPengabdian{}
-	if err := db.WithContext(ctx).Table(tableAnggota).Where(condition, "eksternal").Find(&anggotaEksternal).Error; err != nil {
-		util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	data.AnggotaDosen = anggotaDosen
-	data.AnggotaMahasiswa = anggotaMhs
-	data.AnggotaEksternal = anggotaEksternal
 
 	return util.SuccessResponse(c, http.StatusOK, data)
 }
