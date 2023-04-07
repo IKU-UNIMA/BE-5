@@ -412,11 +412,6 @@ func EditDokumenPatenHandler(c echo.Context) error {
 
 func DeleteDokumenPatenHandler(c echo.Context) error {
 	id := c.Param("id")
-	req := &request.DokumenPaten{}
-	if err := c.Bind(req); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
-	}
-
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 
