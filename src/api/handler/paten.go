@@ -119,8 +119,8 @@ func InsertPatenHandler(c echo.Context) error {
 
 	dokumenPaten := []model.DokumenPaten{}
 	form, _ := c.MultipartForm()
-	if form != nil && req.Dokumen != nil {
-		files := form.File["files"]
+	files := form.File["files"]
+	if files != nil && req.Dokumen != nil {
 		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			file := files[i]
@@ -213,8 +213,8 @@ func EditPatenHandler(c echo.Context) error {
 
 	dokumenPaten := []model.DokumenPaten{}
 	form, _ := c.MultipartForm()
-	if form != nil && req.Dokumen != nil {
-		files := form.File["files"]
+	files := form.File["files"]
+	if files != nil && req.Dokumen != nil {
 		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			file := files[i]
@@ -226,7 +226,7 @@ func EditPatenHandler(c echo.Context) error {
 
 			dokumenPaten = append(dokumenPaten, *req.Dokumen[i].MapRequest(&request.DokumenPatenPayload{
 				IdFile:    dFile.Id,
-				IdPaten:   paten.ID,
+				IdPaten:   id,
 				NamaFile:  dFile.Name,
 				JenisFile: dFile.MimeType,
 				Url:       util.CreateFileUrl(dFile.Id),
@@ -250,7 +250,7 @@ func EditPatenHandler(c echo.Context) error {
 
 	penulis := []model.PenulisPaten{}
 	for _, v := range req.Penulis {
-		penulis = append(penulis, *v.MapRequest(paten.ID))
+		penulis = append(penulis, *v.MapRequest(id))
 	}
 
 	if err := tx.WithContext(ctx).Delete(new(model.PenulisPaten), "id_paten", paten.ID).Error; err != nil {
@@ -278,7 +278,7 @@ func EditPatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
-	return util.SuccessResponse(c, http.StatusCreated, nil)
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func DeletePatenHandler(c echo.Context) error {
