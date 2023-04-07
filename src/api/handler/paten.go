@@ -304,8 +304,8 @@ func DeletePatenHandler(c echo.Context) error {
 	}
 
 	dokumen := []string{}
-	if err := db.WithContext(ctx).Select("id").Where("id_paten", id).Find(&dokumen).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+	if err := db.WithContext(ctx).Model(&model.DokumenPaten{}).Select("id").Where("id_paten", id).Find(&dokumen).Error; err != nil {
+		return util.FailedResponse(c, http.StatusInternalServerError, []string{err.Error()})
 	}
 
 	for _, id := range dokumen {
