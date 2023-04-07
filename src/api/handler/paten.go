@@ -116,10 +116,7 @@ func InsertPatenHandler(c echo.Context) error {
 
 	if err := tx.WithContext(ctx).Create(paten).Error; err != nil {
 		tx.Rollback()
-		if strings.Contains(err.Error(), "id_dosen") {
-			return util.FailedResponse(c, http.StatusNotFound, []string{"dosen tidak ditemukan"})
-		}
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return checkPatenError(c, err)
 	}
 
 	dokumenPaten := []model.DokumenPaten{}
@@ -213,7 +210,7 @@ func EditPatenHandler(c echo.Context) error {
 
 	if err := tx.WithContext(ctx).Where("id", id).Updates(paten).Error; err != nil {
 		tx.Rollback()
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return checkPatenError(c, err)
 	}
 
 	dokumenPaten := []model.DokumenPaten{}
@@ -473,6 +470,27 @@ func patenAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Context
 	}
 
 	return result == idDosen
+}
+
+// checkPatenError used to check the error while inserting or updating paten
+func checkPatenError(c echo.Context, err error) error {
+	if strings.Contains(err.Error(), "id_dosen") {
+		return util.FailedResponse(c, http.StatusNotFound, []string{"dosen tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "id_kategori") {
+		return util.FailedResponse(c, http.StatusNotFound, []string{"kategori tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "id_jenis_penelitian") {
+		return util.FailedResponse(c, http.StatusNotFound, []string{"jenis penelitian tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "id_kategori_capaian") {
+		return util.FailedResponse(c, http.StatusNotFound, []string{"kategori capaian tidak ditemukan"})
+	}
+
+	return util.FailedResponse(c, http.StatusInternalServerError, nil)
 }
 
 func deleteBatchDokumenPaten(dokumen []model.DokumenPaten) {
