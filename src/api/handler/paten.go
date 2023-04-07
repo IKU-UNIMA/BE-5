@@ -368,33 +368,34 @@ func EditDokumenPatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusUnauthorized, nil)
 	}
 
+	var dokumen *model.DokumenPaten
 	file, _ := c.FormFile("file")
-	if file == nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{"file tidak boleh kosong"})
+	if file != nil {
+		if err := storage.DeleteFile(id); err != nil {
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		}
+
+		dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
+		if err != nil {
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		}
+
+		dokumen = req.MapRequest(&request.DokumenPatenPayload{
+			IdFile:    dFile.Id,
+			IdPaten:   idPaten,
+			NamaFile:  dFile.Name,
+			JenisFile: dFile.MimeType,
+			Url:       util.CreateFileUrl(dFile.Id),
+		})
+
+		if dokumen.Nama == "" {
+			dokumen.Nama = dFile.Name
+		}
+	} else {
+		dokumen = req.MapRequest(&request.DokumenPatenPayload{})
 	}
 
-	if err := storage.DeleteFile(id); err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, []string{err.Error()})
-	}
-
-	dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
-	if err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, []string{err.Error()})
-	}
-
-	dokumenPaten := req.MapRequest(&request.DokumenPatenPayload{
-		IdFile:    dFile.Id,
-		IdPaten:   idPaten,
-		NamaFile:  dFile.Name,
-		JenisFile: dFile.MimeType,
-		Url:       util.CreateFileUrl(dFile.Id),
-	})
-
-	if dokumenPaten.Nama == "" {
-		dokumenPaten.Nama = dFile.Name
-	}
-
-	if err := db.WithContext(ctx).Where("id", id).Updates(&dokumenPaten).Error; err != nil {
+	if err := db.WithContext(ctx).Where("id", id).Updates(&dokumen).Error; err != nil {
 		if strings.Contains(err.Error(), "jenis_dokumen") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
 		}
