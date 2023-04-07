@@ -24,8 +24,6 @@ type patenQueryParam struct {
 	Page  int    `query:"page"`
 }
 
-var patenFolderId = env.GetPatenFolderId()
-
 func GetAllPatenHandler(c echo.Context) error {
 	queryParams := &patenQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
@@ -126,7 +124,7 @@ func InsertPatenHandler(c echo.Context) error {
 		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			file := files[i]
-			dFile, err := storage.CreateFile(file, patenFolderId)
+			dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 			if err != nil {
 				tx.Rollback()
 				return c.JSON(http.StatusBadRequest, err.Error())
@@ -220,7 +218,7 @@ func EditPatenHandler(c echo.Context) error {
 		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			file := files[i]
-			dFile, err := storage.CreateFile(file, patenFolderId)
+			dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 			if err != nil {
 				tx.Rollback()
 				return c.JSON(http.StatusBadRequest, err.Error())
@@ -379,7 +377,7 @@ func EditDokumenPatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusInternalServerError, []string{err.Error()})
 	}
 
-	dFile, err := storage.CreateFile(file, patenFolderId)
+	dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 	if err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, []string{err.Error()})
 	}
