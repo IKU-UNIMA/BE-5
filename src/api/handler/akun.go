@@ -58,24 +58,15 @@ func ChangePasswordHandler(c echo.Context) error {
 
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
-	data := &model.Akun{}
 	claims := util.GetClaimsFromContext(c)
 	id := int(claims["id"].(float64))
 
-	if err := db.WithContext(ctx).First(data, "id", id).Error; err != nil {
+	if err := db.WithContext(ctx).First(new(model.Akun), "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
 			return util.FailedResponse(c, http.StatusNotFound, []string{"user tidak ditemukan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	if !util.ValidateHash(request.PasswordLama, data.Password) {
-		return util.FailedResponse(c, http.StatusUnauthorized, []string{"password anda berbeda dengan yang lama"})
-	}
-
-	if request.PasswordBaru == "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{"password baru tidak boleh kosong"})
 	}
 
 	if err := db.WithContext(ctx).Table("akun").Where("id", id).Update("password", util.HashPassword(request.PasswordBaru)).Error; err != nil {
