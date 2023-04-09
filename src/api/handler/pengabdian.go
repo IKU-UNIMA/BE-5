@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -409,28 +410,40 @@ func EditDokumenPengabdianHandler(c echo.Context) error {
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
 		}
 		dokumen = req.MapRequest(&request.DokumenPengabdianPayload{
-			IdFile:       dFile.Id,
-			IdPengabdian: idPengabdian,
-			NamaFile:     dFile.Name,
-			JenisFile:    dFile.MimeType,
-			Url:          util.CreateFileUrl(dFile.Id),
+			NamaFile:  dFile.Name,
+			JenisFile: dFile.MimeType,
+			Url:       util.CreateFileUrl(dFile.Id),
 		})
 
 		if dokumen.Nama == "" {
 			dokumen.Nama = dFile.Name
 		}
 
+		newId := dFile.Id
+		year, month, day := time.Now().Date()
+		tanggalUpload := fmt.Sprintf("%d-%d-%d", year, month, day)
+		updateDokumenQuery := fmt.Sprintf(`UPDATE dokumen_pengabdian SET
+			id='%s',id_jenis_dokumen=%d,nama='%s',nama_file='%s',jenis_file='%s',url='%s',keterangan='%s',tanggal_upload='%v' WHERE id='%s'`,
+			newId, dokumen.IdJenisDokumen, dokumen.Nama, dokumen.NamaFile, dokumen.JenisFile, dokumen.Url, dokumen.Keterangan, tanggalUpload, id)
+		if err := db.WithContext(ctx).Exec(updateDokumenQuery).Error; err != nil {
+			storage.DeleteFile(newId)
+			if strings.Contains(err.Error(), "jenis_dokumen") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+			}
+
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		}
+
 		storage.DeleteFile(id)
 	} else {
 		dokumen = req.MapRequest(&request.DokumenPengabdianPayload{})
-	}
+		if err := db.WithContext(ctx).Where("id", id).Updates(&dokumen).Error; err != nil {
+			if strings.Contains(err.Error(), "jenis_dokumen") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+			}
 
-	if err := db.WithContext(ctx).Where("id", id).Updates(&dokumen).Error; err != nil {
-		if strings.Contains(err.Error(), "jenis_dokumen") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
 		}
-
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
