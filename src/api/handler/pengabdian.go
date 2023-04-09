@@ -400,10 +400,6 @@ func EditDokumenPengabdianHandler(c echo.Context) error {
 	var dokumen *model.DokumenPengabdian
 	file, _ := c.FormFile("file")
 	if file != nil {
-		if err := storage.DeleteFile(id); err != nil {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
 		dFile, err := storage.CreateFile(file, env.GetPengabdianFolderId())
 		if err != nil {
 			if strings.Contains(err.Error(), "unsupported") {
@@ -423,6 +419,8 @@ func EditDokumenPengabdianHandler(c echo.Context) error {
 		if dokumen.Nama == "" {
 			dokumen.Nama = dFile.Name
 		}
+
+		storage.DeleteFile(id)
 	} else {
 		dokumen = req.MapRequest(&request.DokumenPengabdianPayload{})
 	}
