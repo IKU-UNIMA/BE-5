@@ -161,10 +161,6 @@ func InsertPengabdianHandler(c echo.Context) error {
 				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
 			}
 
-			if err := tx.Commit().Error; err != nil {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
-			}
-
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
 		}
 	}
