@@ -43,7 +43,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 		}
 		if queryParams.Judul != "" {
 			if condition != "" {
-				condition = " AND UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
+				condition += " AND UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
 			} else {
 				condition = "UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
 			}
