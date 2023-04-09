@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -43,7 +44,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 		}
 		if queryParams.Judul != "" {
 			if condition != "" {
-				condition = " AND UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
+				condition += " AND UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
 			} else {
 				condition = "UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
 			}
@@ -81,32 +82,14 @@ func GetPengabdianByIdHandler(c echo.Context) error {
 	}
 
 	if err := db.WithContext(ctx).Table("pengabdian").
-		Preload("Dokumen").Preload("Dokumen.JenisDokumen").First(&data, id).Error; err != nil {
+		Preload("Dokumen").Preload("Dokumen.JenisDokumen").
+		Preload("AnggotaDosen", "jenis_anggota='dosen'").
+		Preload("AnggotaMahasiswa", "jenis_anggota='mahasiswa'").
+		Preload("AnggotaEksternal", "jenis_anggota='eksternal'").First(&data, id).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	data.TglSkPenugasan = strings.Split(data.TglSkPenugasan, "T")[0]
-
-	tableAnggota := "anggota_pengabdian"
-	condition := fmt.Sprintf("id_pengabdian = %d && jenis_anggota = ?", id)
-	anggotaDosen := []response.AnggotaDosenPengabdian{}
-	if err := db.WithContext(ctx).Table(tableAnggota).Where(condition, "dosen").Find(&anggotaDosen).Error; err != nil {
-		util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	anggotaMhs := []response.AnggotaMahasiswaPengabdian{}
-	if err := db.WithContext(ctx).Table(tableAnggota).Where(condition, "mahasiswa").Find(&anggotaMhs).Error; err != nil {
-		util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	anggotaEksternal := []response.AnggotaEksternalPengabdian{}
-	if err := db.WithContext(ctx).Table(tableAnggota).Where(condition, "eksternal").Find(&anggotaEksternal).Error; err != nil {
-		util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	data.AnggotaDosen = anggotaDosen
-	data.AnggotaMahasiswa = anggotaMhs
-	data.AnggotaEksternal = anggotaEksternal
 
 	return util.SuccessResponse(c, http.StatusOK, data)
 }
@@ -145,13 +128,17 @@ func InsertPengabdianHandler(c echo.Context) error {
 
 	dokumen := []model.DokumenPengabdian{}
 	form, _ := c.MultipartForm()
-	if form != nil && req.Dokumen != nil {
-		files := form.File["files"]
+	files := form.File["files"]
+	if files != nil && req.Dokumen != nil {
 		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			dFile, err := storage.CreateFile(files[i], env.GetPengabdianFolderId())
 			if err != nil {
 				tx.Rollback()
+				if strings.Contains(err.Error(), "unsupported") {
+					return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+				}
+
 				return util.FailedResponse(c, http.StatusInternalServerError, nil)
 			}
 
@@ -170,16 +157,9 @@ func InsertPengabdianHandler(c echo.Context) error {
 
 		if err := tx.WithContext(ctx).Create(&dokumen).Error; err != nil {
 			tx.Rollback()
-			if !deleteBatchDokumenPengabdian(dokumen) {
-				return util.FailedResponse(c, http.StatusInternalServerError, nil)
-			}
-
+			deleteBatchDokumenPengabdian(dokumen)
 			if strings.Contains(err.Error(), "jenis_dokumen") {
 				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
-			}
-
-			if err := tx.Commit().Error; err != nil {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 			}
 
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -193,10 +173,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 
 	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
 		tx.Rollback()
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		if strings.Contains(err.Error(), "jenis_anggota") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis anggota tidak valid"})
 		}
@@ -209,10 +186,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
@@ -251,20 +225,24 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	dokumen := []model.DokumenPengabdian{}
 	form, _ := c.MultipartForm()
-	if form != nil && req.Dokumen != nil {
-		files := form.File["files"]
+	files := form.File["files"]
+	if files != nil && req.Dokumen != nil {
 		minLen := util.CountMin(len(req.Dokumen), len(files))
 		for i := 0; i < minLen; i++ {
 			file := files[i]
 			dFile, err := storage.CreateFile(file, env.GetPengabdianFolderId())
 			if err != nil {
 				tx.Rollback()
+				if strings.Contains(err.Error(), "unsupported") {
+					return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+				}
+
 				return util.FailedResponse(c, http.StatusInternalServerError, nil)
 			}
 
 			dokumen = append(dokumen, *req.Dokumen[i].MapRequest(&request.DokumenPengabdianPayload{
 				IdFile:       dFile.Id,
-				IdPengabdian: pengabdian.ID,
+				IdPengabdian: id,
 				NamaFile:     dFile.Name,
 				JenisFile:    dFile.MimeType,
 				Url:          util.CreateFileUrl(dFile.Id),
@@ -277,10 +255,7 @@ func EditPengabdianHandler(c echo.Context) error {
 
 		if err := tx.WithContext(ctx).Create(&dokumen).Error; err != nil {
 			tx.Rollback()
-			if !deleteBatchDokumenPengabdian(dokumen) {
-				return util.FailedResponse(c, http.StatusInternalServerError, nil)
-			}
-
+			deleteBatchDokumenPengabdian(dokumen)
 			if strings.Contains(err.Error(), "jenis_dokumen") {
 				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
 			}
@@ -291,24 +266,18 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	anggota := []model.AnggotaPengabdian{}
 	for _, v := range req.Anggota {
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID))
+		anggota = append(anggota, *v.MapRequest(id))
 	}
 
-	if err := tx.WithContext(ctx).Delete(new(model.AnggotaPengabdian), "id_pengabdian", pengabdian.ID).Error; err != nil {
+	if err := tx.WithContext(ctx).Delete(new(model.AnggotaPengabdian), "id_pengabdian", id).Error; err != nil {
 		tx.Rollback()
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
 		tx.Rollback()
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		if strings.Contains(err.Error(), "jenis_anggota") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis anggota tidak valid"})
 		}
@@ -321,10 +290,7 @@ func EditPengabdianHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
@@ -349,10 +315,6 @@ func DeletePengabdianHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
-	if !deleteBatchDokumenPengabdian(dokumen) {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
 	query := db.WithContext(ctx).Delete(new(model.Pengabdian), id)
 	if query.Error != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -361,6 +323,8 @@ func DeletePengabdianHandler(c echo.Context) error {
 	if query.RowsAffected < 1 {
 		return util.FailedResponse(c, http.StatusNotFound, nil)
 	}
+
+	deleteBatchDokumenPengabdian(dokumen)
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
 }
@@ -437,32 +401,49 @@ func EditDokumenPengabdianHandler(c echo.Context) error {
 	var dokumen *model.DokumenPengabdian
 	file, _ := c.FormFile("file")
 	if file != nil {
-		if err := storage.DeleteFile(id); err != nil {
-			return util.FailedResponse(c, http.StatusInternalServerError, []string{err.Error()})
-		}
-
 		dFile, err := storage.CreateFile(file, env.GetPengabdianFolderId())
 		if err != nil {
+			if strings.Contains(err.Error(), "unsupported") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+			}
+
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
 		}
 		dokumen = req.MapRequest(&request.DokumenPengabdianPayload{
-			IdFile:       dFile.Id,
-			IdPengabdian: idPengabdian,
-			NamaFile:     dFile.Name,
-			JenisFile:    dFile.MimeType,
-			Url:          util.CreateFileUrl(dFile.Id),
+			NamaFile:  dFile.Name,
+			JenisFile: dFile.MimeType,
+			Url:       util.CreateFileUrl(dFile.Id),
 		})
-		dokumen.Nama = dFile.Name
-	} else {
-		dokumen = req.MapRequest(&request.DokumenPengabdianPayload{})
-	}
 
-	if err := db.WithContext(ctx).Where("id", id).Updates(&dokumen).Error; err != nil {
-		if strings.Contains(err.Error(), "jenis_dokumen") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+		if dokumen.Nama == "" {
+			dokumen.Nama = dFile.Name
 		}
 
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		newId := dFile.Id
+		year, month, day := time.Now().Date()
+		tanggalUpload := fmt.Sprintf("%d-%d-%d", year, month, day)
+		updateDokumenQuery := fmt.Sprintf(`UPDATE dokumen_pengabdian SET
+			id='%s',id_jenis_dokumen=%d,nama='%s',nama_file='%s',jenis_file='%s',url='%s',keterangan='%s',tanggal_upload='%v' WHERE id='%s'`,
+			newId, dokumen.IdJenisDokumen, dokumen.Nama, dokumen.NamaFile, dokumen.JenisFile, dokumen.Url, dokumen.Keterangan, tanggalUpload, id)
+		if err := db.WithContext(ctx).Exec(updateDokumenQuery).Error; err != nil {
+			storage.DeleteFile(newId)
+			if strings.Contains(err.Error(), "jenis_dokumen") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+			}
+
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		}
+
+		storage.DeleteFile(id)
+	} else {
+		dokumen = req.MapRequest(&request.DokumenPengabdianPayload{})
+		if err := db.WithContext(ctx).Where("id", id).Updates(&dokumen).Error; err != nil {
+			if strings.Contains(err.Error(), "jenis_dokumen") {
+				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
+			}
+
+			return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		}
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -531,12 +512,8 @@ func pengabdianAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Co
 	return result == idDosen
 }
 
-func deleteBatchDokumenPengabdian(dokumen []model.DokumenPengabdian) bool {
+func deleteBatchDokumenPengabdian(dokumen []model.DokumenPengabdian) {
 	for _, v := range dokumen {
-		if err := storage.DeleteFile(v.ID); err != nil {
-			return true
-		}
+		storage.DeleteFile(v.ID)
 	}
-
-	return false
 }
