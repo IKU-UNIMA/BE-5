@@ -303,15 +303,9 @@ func DeletePatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusUnauthorized, nil)
 	}
 
-	dokumen := []string{}
-	if err := db.WithContext(ctx).Model(&model.DokumenPaten{}).Select("id").Where("id_paten", id).Find(&dokumen).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, []string{err.Error()})
-	}
-
-	for _, id := range dokumen {
-		if err := storage.DeleteFile(id); err != nil {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
+	dokumen := []model.DokumenPaten{}
+	if err := db.WithContext(ctx).Select("id").Where("id_paten", id).Find(&dokumen).Error; err != nil {
+		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	query := db.WithContext(ctx).Delete(new(model.Paten), id)
@@ -322,6 +316,8 @@ func DeletePatenHandler(c echo.Context) error {
 	if query.RowsAffected < 1 {
 		return util.FailedResponse(c, http.StatusNotFound, nil)
 	}
+
+	deleteBatchDokumenPaten(dokumen)
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
 }
@@ -398,7 +394,6 @@ func EditDokumenPatenHandler(c echo.Context) error {
 	var dokumen *model.DokumenPaten
 	file, _ := c.FormFile("file")
 	if file != nil {
-
 		dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 		if err != nil {
 			if strings.Contains(err.Error(), "unsupported") {
