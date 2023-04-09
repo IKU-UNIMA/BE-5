@@ -156,10 +156,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 
 		if err := tx.WithContext(ctx).Create(&dokumen).Error; err != nil {
 			tx.Rollback()
-			if !deleteBatchDokumenPengabdian(dokumen) {
-				return util.FailedResponse(c, http.StatusInternalServerError, nil)
-			}
-
+			deleteBatchDokumenPengabdian(dokumen)
 			if strings.Contains(err.Error(), "jenis_dokumen") {
 				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
 			}
@@ -179,10 +176,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 
 	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
 		tx.Rollback()
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		if strings.Contains(err.Error(), "jenis_anggota") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis anggota tidak valid"})
 		}
@@ -195,10 +189,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
@@ -267,10 +258,7 @@ func EditPengabdianHandler(c echo.Context) error {
 
 		if err := tx.WithContext(ctx).Create(&dokumen).Error; err != nil {
 			tx.Rollback()
-			if !deleteBatchDokumenPengabdian(dokumen) {
-				return util.FailedResponse(c, http.StatusInternalServerError, nil)
-			}
-
+			deleteBatchDokumenPengabdian(dokumen)
 			if strings.Contains(err.Error(), "jenis_dokumen") {
 				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
 			}
@@ -286,19 +274,13 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	if err := tx.WithContext(ctx).Delete(new(model.AnggotaPengabdian), "id_pengabdian", id).Error; err != nil {
 		tx.Rollback()
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
 		tx.Rollback()
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		if strings.Contains(err.Error(), "jenis_anggota") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis anggota tidak valid"})
 		}
@@ -311,10 +293,7 @@ func EditPengabdianHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		if !deleteBatchDokumenPengabdian(dokumen) {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
+		deleteBatchDokumenPengabdian(dokumen)
 		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
@@ -339,10 +318,6 @@ func DeletePengabdianHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
-	if !deleteBatchDokumenPengabdian(dokumen) {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
 	query := db.WithContext(ctx).Delete(new(model.Pengabdian), id)
 	if query.Error != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -351,6 +326,8 @@ func DeletePengabdianHandler(c echo.Context) error {
 	if query.RowsAffected < 1 {
 		return util.FailedResponse(c, http.StatusNotFound, nil)
 	}
+
+	deleteBatchDokumenPengabdian(dokumen)
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
 }
@@ -528,12 +505,8 @@ func pengabdianAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Co
 	return result == idDosen
 }
 
-func deleteBatchDokumenPengabdian(dokumen []model.DokumenPengabdian) bool {
+func deleteBatchDokumenPengabdian(dokumen []model.DokumenPengabdian) {
 	for _, v := range dokumen {
-		if err := storage.DeleteFile(v.ID); err != nil {
-			return true
-		}
+		storage.DeleteFile(v.ID)
 	}
-
-	return false
 }
