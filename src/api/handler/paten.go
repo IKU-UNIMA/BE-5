@@ -28,7 +28,7 @@ type patenQueryParam struct {
 func GetAllPatenHandler(c echo.Context) error {
 	queryParams := &patenQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	claims := util.GetClaimsFromContext(c)
@@ -69,7 +69,7 @@ func GetAllPatenHandler(c echo.Context) error {
 func GetPatenByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()
@@ -108,7 +108,7 @@ func InsertPatenHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	paten, err := req.MapRequest()
 	if err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	paten.IdDosen = idDosen
@@ -189,7 +189,7 @@ func InsertPatenHandler(c echo.Context) error {
 func EditPatenHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()
@@ -208,7 +208,7 @@ func EditPatenHandler(c echo.Context) error {
 	tx := db.Begin()
 	paten, errMapping := req.MapRequest()
 	if errMapping != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{errMapping.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{errMapping.Error()})
 	}
 
 	if err := tx.WithContext(ctx).Where("id", id).Updates(paten).Error; err != nil {
@@ -293,7 +293,7 @@ func EditPatenHandler(c echo.Context) error {
 func DeletePatenHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()
@@ -303,15 +303,9 @@ func DeletePatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusUnauthorized, nil)
 	}
 
-	dokumen := []string{}
+	dokumen := []model.DokumenPaten{}
 	if err := db.WithContext(ctx).Select("id").Where("id_paten", id).Find(&dokumen).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
-	}
-
-	for _, id := range dokumen {
-		if err := storage.DeleteFile(id); err != nil {
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
 	}
 
 	query := db.WithContext(ctx).Delete(new(model.Paten), id)
@@ -322,6 +316,8 @@ func DeletePatenHandler(c echo.Context) error {
 	if query.RowsAffected < 1 {
 		return util.FailedResponse(c, http.StatusNotFound, nil)
 	}
+
+	deleteBatchDokumenPaten(dokumen)
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
 }
@@ -398,7 +394,6 @@ func EditDokumenPatenHandler(c echo.Context) error {
 	var dokumen *model.DokumenPaten
 	file, _ := c.FormFile("file")
 	if file != nil {
-
 		dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
 		if err != nil {
 			if strings.Contains(err.Error(), "unsupported") {
