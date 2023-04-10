@@ -8,11 +8,11 @@ import (
 
 type (
 	Paten struct {
-		IdKategori        int            `json:"id_kategori"`
-		IdJenisPenelitian int            `json:"id_jenis"`
-		Judul             string         `json:"judul"`
+		IdKategori        int            `json:"id_kategori" validate:"required"`
+		IdJenisPenelitian int            `json:"id_jenis" validate:"required"`
+		Judul             string         `json:"judul" validate:"required"`
 		JumlahHalaman     int            `json:"jumlah_halaman"`
-		Tanggal           string         `json:"tanggal"`
+		Tanggal           string         `json:"tanggal" validate:"required"`
 		Penyelenggara     string         `json:"penyelenggara"`
 		Penerbit          string         `json:"penerbit"`
 		Isbn              string         `json:"isbn"`
