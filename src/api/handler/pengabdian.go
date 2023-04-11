@@ -27,7 +27,7 @@ type pengabdianQueryParam struct {
 func GetAllPengabdianHandler(c echo.Context) error {
 	queryParams := &pengabdianQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	claims := util.GetClaimsFromContext(c)

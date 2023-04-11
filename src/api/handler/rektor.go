@@ -30,7 +30,7 @@ func GetAllRektorHandler(c echo.Context) error {
 func GetRektorByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()
@@ -52,7 +52,7 @@ func GetRektorByIdHandler(c echo.Context) error {
 func InsertRektorHandler(c echo.Context) error {
 	request := &request.Rektor{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -95,12 +95,12 @@ func InsertRektorHandler(c echo.Context) error {
 func EditRektorHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	request := &request.Rektor{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -146,7 +146,7 @@ func EditRektorHandler(c echo.Context) error {
 func DeleteRektorHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()

@@ -15,7 +15,7 @@ import (
 func GetAllProdiHandler(c echo.Context) error {
 	idFakultas := c.QueryParam("fakultas")
 	if !util.IsInteger(idFakultas) {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{"id fakultas harus berupa angka"})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{"id fakultas harus berupa angka"})
 	}
 
 	db := database.InitMySQL()
@@ -37,7 +37,7 @@ func GetAllProdiHandler(c echo.Context) error {
 func GetProdiByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()
@@ -58,7 +58,7 @@ func GetProdiByIdHandler(c echo.Context) error {
 func InsertProdiHandler(c echo.Context) error {
 	request := &request.Prodi{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -80,12 +80,12 @@ func InsertProdiHandler(c echo.Context) error {
 func EditProdiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	request := &request.Prodi{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -115,7 +115,7 @@ func EditProdiHandler(c echo.Context) error {
 func DeleteProdiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()

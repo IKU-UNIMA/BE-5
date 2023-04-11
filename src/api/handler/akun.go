@@ -14,7 +14,7 @@ import (
 func LoginHandler(c echo.Context) error {
 	request := &request.Login{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -53,7 +53,7 @@ func LoginHandler(c echo.Context) error {
 func ChangePasswordHandler(c echo.Context) error {
 	request := &request.ChangePassword{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -79,7 +79,7 @@ func ChangePasswordHandler(c echo.Context) error {
 func ResetPasswordHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()

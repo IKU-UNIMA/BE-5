@@ -33,7 +33,7 @@ func GetProfilHandler(c echo.Context) error {
 func EditProfilHandler(c echo.Context) error {
 	request := &request.Profil{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()

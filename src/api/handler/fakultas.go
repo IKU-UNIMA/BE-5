@@ -27,7 +27,7 @@ func GetAllFakultasHandler(c echo.Context) error {
 func GetFakultasByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()
@@ -48,7 +48,7 @@ func GetFakultasByIdHandler(c echo.Context) error {
 func InsertFakultasHandler(c echo.Context) error {
 	request := &request.Fakultas{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -68,12 +68,12 @@ func InsertFakultasHandler(c echo.Context) error {
 func EditFakultasHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	request := &request.Fakultas{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -103,7 +103,7 @@ func EditFakultasHandler(c echo.Context) error {
 func DeleteFakultasHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
 	}
 
 	db := database.InitMySQL()
