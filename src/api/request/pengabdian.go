@@ -4,7 +4,6 @@ import (
 	"be-5/src/model"
 	"be-5/src/util"
 	"errors"
-	"time"
 )
 
 type (
@@ -27,22 +26,8 @@ type (
 		NoSkPenugasan           string              `json:"no_sk_penugasan"`
 		TglSkPenugasan          string              `json:"tgl_sk_penugasan"`
 		MitraLitabmas           string              `json:"mitra_litabmas"`
-		Dokumen                 []DokumenPengabdian `json:"dokumen"`
+		Dokumen                 []Dokumen           `json:"dokumen"`
 		Anggota                 []AnggotaPengabdian `json:"anggota"`
-	}
-
-	DokumenPengabdian struct {
-		IdJenisDokumen int    `json:"id_jenis_dokumen"`
-		Nama           string `json:"nama"`
-		Keterangan     string `json:"keterangan"`
-	}
-
-	DokumenPengabdianPayload struct {
-		IdFile       string
-		IdPengabdian int
-		NamaFile     string
-		JenisFile    string
-		Url          string
 	}
 
 	AnggotaPengabdian struct {
@@ -79,20 +64,6 @@ func (r *Pengabdian) MapRequest() (*model.Pengabdian, error) {
 		TglSkPenugasan:          tglSkPenugasan,
 		MitraLitabmas:           r.MitraLitabmas,
 	}, nil
-}
-
-func (r *DokumenPengabdian) MapRequest(p *DokumenPengabdianPayload) *model.DokumenPengabdian {
-	return &model.DokumenPengabdian{
-		ID:             p.IdFile,
-		IdPengabdian:   p.IdPengabdian,
-		IdJenisDokumen: r.IdJenisDokumen,
-		Nama:           r.Nama,
-		NamaFile:       p.NamaFile,
-		JenisFile:      p.JenisFile,
-		Url:            p.Url,
-		Keterangan:     r.Keterangan,
-		TanggalUpload:  time.Now(),
-	}
 }
 
 func (r *AnggotaPengabdian) MapRequest(idPengabdian int) *model.AnggotaPengabdian {
