@@ -7,10 +7,10 @@ import (
 )
 
 type base struct {
-	Status  int         `json:"status"`
-	Message string      `json:"message"`
-	Errors  interface{} `json:"errors"`
-	Data    interface{} `json:"data"`
+	Status  int               `json:"status"`
+	Message string            `json:"message"`
+	Errors  map[string]string `json:"errors"`
+	Data    interface{}       `json:"data"`
 }
 
 func SuccessResponse(c echo.Context, httpCode int, data interface{}) error {
@@ -24,7 +24,7 @@ func SuccessResponse(c echo.Context, httpCode int, data interface{}) error {
 	)
 }
 
-func FailedResponse(c echo.Context, httpCode int, errors []string) error {
+func FailedResponse(c echo.Context, httpCode int, errors map[string]string) error {
 	return c.JSON(
 		httpCode,
 		base{

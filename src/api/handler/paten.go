@@ -27,7 +27,7 @@ type patenQueryParam struct {
 func GetAllPatenHandler(c echo.Context) error {
 	queryParams := &patenQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	claims := util.GetClaimsFromContext(c)
@@ -68,7 +68,7 @@ func GetAllPatenHandler(c echo.Context) error {
 func GetPatenByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -96,7 +96,7 @@ func InsertPatenHandler(c echo.Context) error {
 	req := &request.Paten{}
 	reqData := c.FormValue("data")
 	if err := json.Unmarshal([]byte(reqData), req); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	claims := util.GetClaimsFromContext(c)
@@ -107,7 +107,7 @@ func InsertPatenHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	paten, err := req.MapRequest()
 	if err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	paten.IdDosen = idDosen
@@ -143,11 +143,11 @@ func InsertPatenHandler(c echo.Context) error {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis penulis tidak valid"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
 		}
 
 		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"peran tidak valid"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -155,7 +155,7 @@ func InsertPatenHandler(c echo.Context) error {
 
 	if err := tx.Commit().Error; err != nil {
 		helper.DeleteBatchDokumen(idDokumen)
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusCreated, nil)
@@ -164,7 +164,7 @@ func InsertPatenHandler(c echo.Context) error {
 func EditPatenHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -177,13 +177,13 @@ func EditPatenHandler(c echo.Context) error {
 	req := &request.Paten{}
 	reqData := c.FormValue("data")
 	if err := json.Unmarshal([]byte(reqData), req); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	tx := db.Begin()
 	paten, errMapping := req.MapRequest()
 	if errMapping != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{errMapping.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
 	}
 
 	// edit paten
@@ -223,11 +223,11 @@ func EditPatenHandler(c echo.Context) error {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis penulis tidak valid"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
 		}
 
 		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"peran tidak valid"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -235,7 +235,7 @@ func EditPatenHandler(c echo.Context) error {
 
 	if err := tx.Commit().Error; err != nil {
 		helper.DeleteBatchDokumen(idDokumen)
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -244,7 +244,7 @@ func EditPatenHandler(c echo.Context) error {
 func DeletePatenHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -382,7 +382,7 @@ func DeleteDokumenPatenHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -408,19 +408,19 @@ func patenAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Context
 // checkPatenError used to check the error while inserting or updating paten
 func checkPatenError(c echo.Context, err error) error {
 	if strings.Contains(err.Error(), "id_dosen") {
-		return util.FailedResponse(c, http.StatusNotFound, []string{"dosen tidak ditemukan"})
+		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
 	}
 
 	if strings.Contains(err.Error(), "id_kategori") {
-		return util.FailedResponse(c, http.StatusNotFound, []string{"kategori tidak ditemukan"})
+		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
 	}
 
 	if strings.Contains(err.Error(), "id_jenis_penelitian") {
-		return util.FailedResponse(c, http.StatusNotFound, []string{"jenis penelitian tidak ditemukan"})
+		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "jenis penelitian tidak ditemukan"})
 	}
 
 	if strings.Contains(err.Error(), "id_kategori_capaian") {
-		return util.FailedResponse(c, http.StatusNotFound, []string{"kategori capaian tidak ditemukan"})
+		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "kategori capaian tidak ditemukan"})
 	}
 
 	return util.FailedResponse(c, http.StatusInternalServerError, nil)

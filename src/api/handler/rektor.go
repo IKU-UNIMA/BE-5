@@ -30,7 +30,7 @@ func GetAllRektorHandler(c echo.Context) error {
 func GetRektorByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -52,7 +52,7 @@ func GetRektorByIdHandler(c echo.Context) error {
 func InsertRektorHandler(c echo.Context) error {
 	request := &request.Rektor{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -67,7 +67,7 @@ func InsertRektorHandler(c echo.Context) error {
 	if err := tx.WithContext(ctx).Create(akun).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"email sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "email sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -79,14 +79,14 @@ func InsertRektorHandler(c echo.Context) error {
 	if err := tx.WithContext(ctx).Create(rektor).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"NIP sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "NIP sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusCreated, map[string]string{"password": password})
@@ -95,12 +95,12 @@ func InsertRektorHandler(c echo.Context) error {
 func EditRektorHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	request := &request.Rektor{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -118,7 +118,7 @@ func EditRektorHandler(c echo.Context) error {
 	if err := tx.WithContext(ctx).Table("akun").Where("id", id).Update("email", request.Email).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"email sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "email sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -129,7 +129,7 @@ func EditRektorHandler(c echo.Context) error {
 		if err != nil {
 			tx.Rollback()
 			if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"NIP sudah digunakan"})
+				return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "NIP sudah digunakan"})
 			}
 
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -137,7 +137,7 @@ func EditRektorHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -146,7 +146,7 @@ func EditRektorHandler(c echo.Context) error {
 func DeleteRektorHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()

@@ -24,7 +24,7 @@ type dosenQueryParam struct {
 func GetAllDosenHandler(c echo.Context) error {
 	queryParams := &dosenQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -72,7 +72,7 @@ func GetAllDosenHandler(c echo.Context) error {
 func GetDosenByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -106,7 +106,7 @@ func GetDosenByIdHandler(c echo.Context) error {
 func InsertDosenHandler(c echo.Context) error {
 	request := &request.Dosen{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -126,13 +126,13 @@ func InsertDosenHandler(c echo.Context) error {
 	}
 
 	if prodiQuery.RowsAffected < 1 {
-		return util.FailedResponse(c, http.StatusNotFound, []string{"prodi tidak ditemukan"})
+		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "prodi tidak ditemukan"})
 	}
 
 	if err := tx.WithContext(ctx).Create(akun).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"email sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "email sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -146,17 +146,17 @@ func InsertDosenHandler(c echo.Context) error {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
 			if strings.Contains(err.Error(), "nidn") {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"NIDN sudah digunakan"})
+				return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "NIDN sudah digunakan"})
 			}
 
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"NIP sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "NIP sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusCreated, map[string]string{"password": password})
@@ -165,12 +165,12 @@ func InsertDosenHandler(c echo.Context) error {
 func EditDosenHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	request := &request.Dosen{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -193,7 +193,7 @@ func EditDosenHandler(c echo.Context) error {
 	}
 
 	if prodiQuery.RowsAffected < 1 {
-		return util.FailedResponse(c, http.StatusNotFound, []string{"prodi tidak ditemukan"})
+		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "prodi tidak ditemukan"})
 	}
 
 	result := request.MapRequest()
@@ -202,7 +202,7 @@ func EditDosenHandler(c echo.Context) error {
 	if err := tx.WithContext(ctx).Table("akun").Where("id", id).Update("email", request.Email).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"email sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "email sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -213,10 +213,10 @@ func EditDosenHandler(c echo.Context) error {
 			tx.Rollback()
 			if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
 				if strings.Contains(err.Error(), "nidn") {
-					return util.FailedResponse(c, http.StatusBadRequest, []string{"NIDN sudah digunakan"})
+					return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "NIDN sudah digunakan"})
 				}
 
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"NIP sudah digunakan"})
+				return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "NIP sudah digunakan"})
 			}
 
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -224,7 +224,7 @@ func EditDosenHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -233,7 +233,7 @@ func EditDosenHandler(c echo.Context) error {
 func DeleteDosenHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
