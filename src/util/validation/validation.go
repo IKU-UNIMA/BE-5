@@ -56,27 +56,37 @@ func getTagMessage(e validator.FieldError) string {
 	return ""
 }
 
-func ValidateDokumen(c echo.Context, req *request.Dokumen) error {
+func ValidateDokumen(req *request.Dokumen) error {
+	httpCode := http.StatusBadRequest
 	if req.IdJenisDokumen < 1 {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "jenis dokumen wajib diisi"})
+		return echo.NewHTTPError(httpCode, util.Base{
+			Status:  httpCode,
+			Message: http.StatusText(httpCode),
+			Errors:  map[string]string{"message": "jenis dokumen wajib diisi"},
+		})
 	}
 
 	return nil
 }
 
-func ValidatePenulis(c echo.Context, req *request.Penulis) error {
-	errors := map[string]string{}
+func ValidatePenulis(req *request.Penulis) error {
+	errs := map[string]string{}
 	if req.JenisPenulis == "" {
-		errors["message"] = "jenis penulis wajib diisi"
+		errs["message"] = "jenis penulis wajib diisi"
 	} else if req.Nama == "" {
-		errors["message"] = "nama penulis wajib diisi"
+		errs["message"] = "nama penulis wajib diisi"
 	} else if req.Peran == "" {
-		errors["message"] = "peran wajib diisi"
+		errs["message"] = "peran wajib diisi"
 	}
 
-	if len(errors) < 1 {
+	if len(errs) < 1 {
 		return nil
 	}
 
-	return util.FailedResponse(c, http.StatusBadRequest, errors)
+	httpCode := http.StatusBadRequest
+	return echo.NewHTTPError(httpCode, util.Base{
+		Status:  httpCode,
+		Message: http.StatusText(httpCode),
+		Errors:  errs,
+	})
 }
