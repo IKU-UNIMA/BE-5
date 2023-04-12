@@ -4,7 +4,6 @@ import (
 	"be-5/src/model"
 	"be-5/src/util"
 	"errors"
-	"time"
 )
 
 type (
@@ -19,22 +18,8 @@ type (
 		Isbn              string         `json:"isbn"`
 		TautanEksternal   string         `json:"tautan_eksternal"`
 		Keterangan        string         `json:"keterangan"`
-		Dokumen           []DokumenPaten `json:"dokumen"`
+		Dokumen           []Dokumen      `json:"dokumen"`
 		Penulis           []PenulisPaten `json:"penulis"`
-	}
-
-	DokumenPaten struct {
-		IdJenisDokumen int    `json:"id_jenis_dokumen"`
-		Nama           string `json:"nama"`
-		Keterangan     string `json:"keterangan"`
-	}
-
-	DokumenPatenPayload struct {
-		IdFile    string
-		IdPaten   int
-		NamaFile  string
-		JenisFile string
-		Url       string
 	}
 
 	PenulisPaten struct {
@@ -65,20 +50,6 @@ func (r *Paten) MapRequest() (*model.Paten, error) {
 		TautanEksternal:   r.TautanEksternal,
 		Keterangan:        r.Keterangan,
 	}, nil
-}
-
-func (r *DokumenPaten) MapRequest(p *DokumenPatenPayload) *model.DokumenPaten {
-	return &model.DokumenPaten{
-		ID:             p.IdFile,
-		IdPaten:        p.IdPaten,
-		IdJenisDokumen: r.IdJenisDokumen,
-		Nama:           r.Nama,
-		NamaFile:       p.NamaFile,
-		JenisFile:      p.JenisFile,
-		Url:            p.Url,
-		Keterangan:     r.Keterangan,
-		TanggalUpload:  time.Now(),
-	}
 }
 
 func (r *PenulisPaten) MapRequest(idPaten int) *model.PenulisPaten {
