@@ -8,6 +8,7 @@ import (
 	"be-5/src/config/storage"
 	"be-5/src/model"
 	"be-5/src/util"
+	"be-5/src/util/validation"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -27,7 +28,7 @@ type pengabdianQueryParam struct {
 func GetAllPengabdianHandler(c echo.Context) error {
 	queryParams := &pengabdianQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	claims := util.GetClaimsFromContext(c)
@@ -69,7 +70,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 func GetPengabdianByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -97,14 +98,22 @@ func InsertPengabdianHandler(c echo.Context) error {
 	req := &request.Pengabdian{}
 	reqData := c.FormValue("data")
 	if err := json.Unmarshal([]byte(reqData), req); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if len(req.Anggota) < 1 {
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "anggota tidak boleh kosong"})
 	}
 
 	claims := util.GetClaimsFromContext(c)
 	idDosen := int(claims["id"].(float64))
 	pengabdian, err := req.MapRequest()
 	if err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 	pengabdian.IdDosen = idDosen
 
@@ -116,11 +125,11 @@ func InsertPengabdianHandler(c echo.Context) error {
 	if err := tx.WithContext(ctx).Create(pengabdian).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), "id_dosen") {
-			return util.FailedResponse(c, http.StatusNotFound, []string{"dosen tidak ditemukan"})
+			return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
 		}
 
 		if strings.Contains(err.Error(), "id_kategori") {
-			return util.FailedResponse(c, http.StatusNotFound, []string{"kategori tidak ditemukan"})
+			return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -144,6 +153,12 @@ func InsertPengabdianHandler(c echo.Context) error {
 	// insert anggota
 	anggota := []model.AnggotaPengabdian{}
 	for _, v := range req.Anggota {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
 		anggota = append(anggota, *v.MapRequest(pengabdian.ID))
 	}
 
@@ -151,11 +166,11 @@ func InsertPengabdianHandler(c echo.Context) error {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_anggota") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis anggota tidak valid"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "jenis anggota tidak valid"})
 		}
 
 		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"peran tidak valid"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -163,7 +178,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 
 	if err := tx.Commit().Error; err != nil {
 		helper.DeleteBatchDokumen(idDokumen)
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusCreated, nil)
@@ -172,7 +187,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 func EditPengabdianHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -186,12 +201,20 @@ func EditPengabdianHandler(c echo.Context) error {
 	req := &request.Pengabdian{}
 	reqData := c.FormValue("data")
 	if err := json.Unmarshal([]byte(reqData), req); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if len(req.Anggota) < 1 {
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "penulis tidak boleh kosong"})
 	}
 
 	pengabdian, errMapping := req.MapRequest()
 	if errMapping != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{errMapping.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
 	}
 
 	// edit pengabdian
@@ -217,6 +240,12 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	anggota := []model.AnggotaPengabdian{}
 	for _, v := range req.Anggota {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
 		anggota = append(anggota, *v.MapRequest(id))
 	}
 
@@ -231,11 +260,11 @@ func EditPengabdianHandler(c echo.Context) error {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_anggota") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis anggota tidak valid"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "jenis anggota tidak valid"})
 		}
 
 		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"peran tidak valid"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -243,7 +272,7 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	if err := tx.Commit().Error; err != nil {
 		helper.DeleteBatchDokumen(idDokumen)
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -252,7 +281,7 @@ func EditPengabdianHandler(c echo.Context) error {
 func DeletePengabdianHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -357,7 +386,7 @@ func DeleteDokumenPengabdianHandler(c echo.Context) error {
 	id := c.Param("id")
 	req := &request.Dokumen{}
 	if err := c.Bind(req); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -393,7 +422,7 @@ func DeleteDokumenPengabdianHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)

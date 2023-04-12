@@ -15,7 +15,7 @@ import (
 func GetAllProdiHandler(c echo.Context) error {
 	idFakultas := c.QueryParam("fakultas")
 	if !util.IsInteger(idFakultas) {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{"id fakultas harus berupa angka"})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "id fakultas harus berupa angka"})
 	}
 
 	db := database.InitMySQL()
@@ -37,7 +37,7 @@ func GetAllProdiHandler(c echo.Context) error {
 func GetProdiByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -58,7 +58,11 @@ func GetProdiByIdHandler(c echo.Context) error {
 func InsertProdiHandler(c echo.Context) error {
 	request := &request.Prodi{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+
+	if err := c.Validate(request); err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -68,7 +72,7 @@ func InsertProdiHandler(c echo.Context) error {
 
 	if err := db.WithContext(ctx).Create(data).Error; err != nil {
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"fakultas sudah ada"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "fakultas sudah ada"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -80,12 +84,16 @@ func InsertProdiHandler(c echo.Context) error {
 func EditProdiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	request := &request.Prodi{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+
+	if err := c.Validate(request); err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -102,7 +110,7 @@ func EditProdiHandler(c echo.Context) error {
 	if err := db.WithContext(ctx).Where("id", id).Updates(request.MapRequest()).Error; err != nil {
 		if err != nil {
 			if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"prodi sudah ada"})
+				return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "prodi sudah ada"})
 			}
 
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -115,7 +123,7 @@ func EditProdiHandler(c echo.Context) error {
 func DeleteProdiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()

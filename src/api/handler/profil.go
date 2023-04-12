@@ -21,7 +21,7 @@ func GetProfilHandler(c echo.Context) error {
 
 	if err := db.WithContext(ctx).Table(role).First(data, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
-			return util.FailedResponse(c, http.StatusUnauthorized, []string{"user tidak ditemukan"})
+			return util.FailedResponse(c, http.StatusUnauthorized, map[string]string{"message": "user tidak ditemukan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -33,7 +33,11 @@ func GetProfilHandler(c echo.Context) error {
 func EditProfilHandler(c echo.Context) error {
 	request := &request.Profil{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+
+	if err := c.Validate(request); err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -44,7 +48,7 @@ func EditProfilHandler(c echo.Context) error {
 
 	if err := db.WithContext(ctx).First(data, id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
-			return util.FailedResponse(c, http.StatusUnauthorized, []string{"user tidak ditemukan"})
+			return util.FailedResponse(c, http.StatusUnauthorized, map[string]string{"message": "user tidak ditemukan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)

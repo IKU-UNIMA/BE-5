@@ -30,7 +30,7 @@ func GetAllAdminHandler(c echo.Context) error {
 func GetAdminByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -52,7 +52,11 @@ func GetAdminByIdHandler(c echo.Context) error {
 func InsertAdminHandler(c echo.Context) error {
 	request := &request.Admin{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+
+	if err := c.Validate(request); err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -67,7 +71,7 @@ func InsertAdminHandler(c echo.Context) error {
 	if err := tx.WithContext(ctx).Create(akun).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"email sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "email sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -79,14 +83,14 @@ func InsertAdminHandler(c echo.Context) error {
 	if err := tx.WithContext(ctx).Create(admin).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"NIP sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "NIP sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusCreated, map[string]string{"password": password})
@@ -95,12 +99,16 @@ func InsertAdminHandler(c echo.Context) error {
 func EditAdminHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	request := &request.Admin{}
 	if err := c.Bind(request); err != nil {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+
+	if err := c.Validate(request); err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -118,7 +126,7 @@ func EditAdminHandler(c echo.Context) error {
 	if err := tx.WithContext(ctx).Table("akun").Where("id", id).Update("email", request.Email).Error; err != nil {
 		tx.Rollback()
 		if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-			return util.FailedResponse(c, http.StatusBadRequest, []string{"email sudah digunakan"})
+			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "email sudah digunakan"})
 		}
 
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -129,7 +137,7 @@ func EditAdminHandler(c echo.Context) error {
 		if err != nil {
 			tx.Rollback()
 			if strings.Contains(err.Error(), util.UNIQUE_ERROR) {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"NIP sudah digunakan"})
+				return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "NIP sudah digunakan"})
 			}
 
 			return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -137,7 +145,7 @@ func EditAdminHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -146,7 +154,7 @@ func EditAdminHandler(c echo.Context) error {
 func DeleteAdminHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusUnprocessableEntity, []string{err})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()

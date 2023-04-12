@@ -2,16 +2,21 @@ package route
 
 import (
 	"be-5/src/api/handler"
+	"be-5/src/util/validation"
 
 	customMiddleware "be-5/src/api/middleware"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func InitServer() *echo.Echo {
+
 	app := echo.New()
 	app.Use(middleware.CORS())
+
+	app.Validator = &validation.CustomValidator{Validator: validator.New()}
 
 	app.GET("", func(c echo.Context) error {
 		return c.JSON(200, "Welcome to IKU 5 API")

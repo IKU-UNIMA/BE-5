@@ -1,5 +1,5 @@
 package request
 
 type Profil struct {
-	Nama string `json:"nama"`
+	Nama string `json:"nama" validate:"required"`
 }
