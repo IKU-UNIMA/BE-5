@@ -58,8 +58,25 @@ func getTagMessage(e validator.FieldError) string {
 
 func ValidateDokumen(c echo.Context, req *request.Dokumen) error {
 	if req.IdJenisDokumen < 1 {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"jenis_dokumen": "field ini wajib diisi"})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "jenis dokumen wajib diisi"})
 	}
 
 	return nil
+}
+
+func ValidatePenulis(c echo.Context, req *request.Penulis) error {
+	errors := map[string]string{}
+	if req.JenisPenulis == "" {
+		errors["message"] = "jenis penulis wajib diisi"
+	} else if req.Nama == "" {
+		errors["message"] = "nama penulis wajib diisi"
+	} else if req.Peran == "" {
+		errors["message"] = "peran wajib diisi"
+	}
+
+	if len(errors) < 1 {
+		return nil
+	}
+
+	return util.FailedResponse(c, http.StatusBadRequest, errors)
 }
