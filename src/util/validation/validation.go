@@ -1,6 +1,8 @@
-package util
+package validation
 
 import (
+	"be-5/src/api/request"
+	"be-5/src/util"
 	"net/http"
 	"regexp"
 	"strings"
@@ -17,7 +19,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	if err := cv.Validator.Struct(i); err != nil {
 		errs := err.(validator.ValidationErrors)
 		httpCode := http.StatusBadRequest
-		return echo.NewHTTPError(httpCode, base{
+		return echo.NewHTTPError(httpCode, util.Base{
 			Status:  httpCode,
 			Message: http.StatusText(httpCode),
 			Errors:  translate(errs),
@@ -52,4 +54,12 @@ func getTagMessage(e validator.FieldError) string {
 	}
 
 	return ""
+}
+
+func ValidateDokumen(c echo.Context, req *request.Dokumen) error {
+	if req.IdJenisDokumen < 1 {
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"jenis_dokumen": "field ini wajib diisi"})
+	}
+
+	return nil
 }
