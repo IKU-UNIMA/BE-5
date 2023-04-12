@@ -8,6 +8,7 @@ import (
 	"be-5/src/config/storage"
 	"be-5/src/model"
 	"be-5/src/util"
+	"be-5/src/util/validation"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -99,6 +100,14 @@ func InsertPatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if len(req.Penulis) < 1 {
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "penulis tidak boleh kosong"})
+	}
+
 	claims := util.GetClaimsFromContext(c)
 	idDosen := int(claims["id"].(float64))
 
@@ -136,7 +145,13 @@ func InsertPatenHandler(c echo.Context) error {
 	// insert penulis
 	penulis := []model.PenulisPaten{}
 	for _, v := range req.Penulis {
-		penulis = append(penulis, *v.MapRequest(paten.ID))
+		if err := validation.ValidatePenulis(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten(paten.ID))
 	}
 
 	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
@@ -180,6 +195,14 @@ func EditPatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if len(req.Penulis) < 1 {
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "penulis tidak boleh kosong"})
+	}
+
 	tx := db.Begin()
 	paten, errMapping := req.MapRequest()
 	if errMapping != nil {
@@ -209,7 +232,13 @@ func EditPatenHandler(c echo.Context) error {
 
 	penulis := []model.PenulisPaten{}
 	for _, v := range req.Penulis {
-		penulis = append(penulis, *v.MapRequest(id))
+		if err := validation.ValidatePenulis(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten(id))
 	}
 
 	if err := tx.WithContext(ctx).Delete(new(model.PenulisPaten), "id_paten", id).Error; err != nil {

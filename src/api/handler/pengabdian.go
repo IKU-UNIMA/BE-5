@@ -8,6 +8,7 @@ import (
 	"be-5/src/config/storage"
 	"be-5/src/model"
 	"be-5/src/util"
+	"be-5/src/util/validation"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -100,6 +101,14 @@ func InsertPengabdianHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if len(req.Anggota) < 1 {
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "anggota tidak boleh kosong"})
+	}
+
 	claims := util.GetClaimsFromContext(c)
 	idDosen := int(claims["id"].(float64))
 	pengabdian, err := req.MapRequest()
@@ -144,6 +153,12 @@ func InsertPengabdianHandler(c echo.Context) error {
 	// insert anggota
 	anggota := []model.AnggotaPengabdian{}
 	for _, v := range req.Anggota {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
 		anggota = append(anggota, *v.MapRequest(pengabdian.ID))
 	}
 
@@ -189,6 +204,14 @@ func EditPengabdianHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	if len(req.Anggota) < 1 {
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "penulis tidak boleh kosong"})
+	}
+
 	pengabdian, errMapping := req.MapRequest()
 	if errMapping != nil {
 		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
@@ -217,6 +240,12 @@ func EditPengabdianHandler(c echo.Context) error {
 
 	anggota := []model.AnggotaPengabdian{}
 	for _, v := range req.Anggota {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
 		anggota = append(anggota, *v.MapRequest(id))
 	}
 

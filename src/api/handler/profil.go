@@ -36,6 +36,10 @@ func EditProfilHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
+	if err := c.Validate(request); err != nil {
+		return err
+	}
+
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 	data := &model.Akun{}

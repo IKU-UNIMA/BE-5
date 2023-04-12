@@ -5,6 +5,7 @@ import (
 	"be-5/src/config/env"
 	"be-5/src/config/storage"
 	"be-5/src/util"
+	"be-5/src/util/validation"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -58,6 +59,11 @@ func InsertDokumen(param InsertDokumenParam) ([]string, error) {
 
 		minLen := util.CountMin(len(req), len(files))
 		for i := 0; i < minLen; i++ {
+			if err := validation.ValidateDokumen(&req[i]); err != nil {
+				param.TX.Rollback()
+				return nil, err
+			}
+
 			dFile, err := storage.CreateFile(files[i], env.GetPengabdianFolderId())
 			if err != nil {
 				param.TX.Rollback()
@@ -111,9 +117,14 @@ func EditDokumen(param EditDokumenParam) error {
 		return util.FailedResponse(param.C, http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
+	if err := validation.ValidateDokumen(req); err != nil {
+		return err
+	}
+
 	var dokumen *DokumenModel
 	file, _ := param.C.FormFile("file")
 	if file != nil {
+
 		dFile, err := storage.CreateFile(file, getFolderId(param.Fitur))
 		if err != nil {
 			if strings.Contains(err.Error(), "unsupported") {
