@@ -45,5 +45,10 @@ func MigrateMySQL() {
 		&model.KategoriPengabdian{},
 		&model.DokumenPengabdian{},
 		&model.AnggotaPengabdian{},
+		&model.Publikasi{},
+		&model.JenisKategoriPublikasi{},
+		&model.KategoriPublikasi{},
+		&model.DokumenPublikasi{},
+		&model.PenulisPublikasi{},
 	)
 }
