@@ -31,10 +31,10 @@ type (
 	}
 
 	AnggotaPengabdian struct {
-		Nama         string `json:"nama" validate:"required"`
-		JenisAnggota string `json:"jenis_anggota" validate:"required"`
-		Peran        string `json:"peran" validate:"required"`
-		IsActive     bool   `json:"is_active" validate:"required"`
+		Nama         string `json:"nama"`
+		JenisAnggota string `json:"jenis_anggota"`
+		Peran        string `json:"peran"`
+		IsActive     bool   `json:"is_active"`
 	}
 )
 
