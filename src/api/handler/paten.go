@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"be-5/src/api/handler/helper"
 	"be-5/src/api/request"
 	"be-5/src/api/response"
 	"be-5/src/config/database"
-	"be-5/src/config/env"
 	"be-5/src/config/storage"
 	"be-5/src/model"
 	"be-5/src/util"
@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
@@ -113,52 +112,28 @@ func InsertPatenHandler(c echo.Context) error {
 
 	paten.IdDosen = idDosen
 
+	// insert paten
 	if err := tx.WithContext(ctx).Create(paten).Error; err != nil {
 		tx.Rollback()
 		return checkPatenError(c, err)
 	}
 
-	dokumenPaten := []model.DokumenPaten{}
-	form, _ := c.MultipartForm()
-	files := form.File["files"]
-	if files != nil && req.Dokumen != nil {
-		minLen := util.CountMin(len(req.Dokumen), len(files))
-		for i := 0; i < minLen; i++ {
-			file := files[i]
-			dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
-			if err != nil {
-				tx.Rollback()
-				if strings.Contains(err.Error(), "unsupported") {
-					return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
-				}
+	// insert dokumen
+	idDokumen, err := helper.InsertDokumen(helper.InsertDokumenParam{
+		C:       c,
+		Ctx:     ctx,
+		DB:      db,
+		TX:      tx,
+		Fitur:   "paten",
+		IdFitur: paten.ID,
+		Data:    req.Dokumen,
+	})
 
-				return util.FailedResponse(c, http.StatusInternalServerError, nil)
-			}
-
-			dokumenPaten = append(dokumenPaten, *req.Dokumen[i].MapRequest(&request.DokumenPatenPayload{
-				IdFile:    dFile.Id,
-				IdPaten:   paten.ID,
-				NamaFile:  dFile.Name,
-				JenisFile: dFile.MimeType,
-				Url:       util.CreateFileUrl(dFile.Id),
-			}))
-
-			if req.Dokumen[i].Nama == "" {
-				dokumenPaten[i].Nama = dFile.Name
-			}
-		}
-
-		if err := tx.WithContext(ctx).Create(&dokumenPaten).Error; err != nil {
-			tx.Rollback()
-			deleteBatchDokumenPaten(dokumenPaten)
-			if strings.Contains(err.Error(), "jenis_dokumen") {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
-			}
-
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
+	if err != nil {
+		return err
 	}
 
+	// insert penulis
 	penulis := []model.PenulisPaten{}
 	for _, v := range req.Penulis {
 		penulis = append(penulis, *v.MapRequest(paten.ID))
@@ -166,7 +141,7 @@ func InsertPatenHandler(c echo.Context) error {
 
 	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
 		tx.Rollback()
-		deleteBatchDokumenPaten(dokumenPaten)
+		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis penulis tidak valid"})
 		}
@@ -179,7 +154,7 @@ func InsertPatenHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		deleteBatchDokumenPaten(dokumenPaten)
+		helper.DeleteBatchDokumen(idDokumen)
 		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
@@ -211,50 +186,25 @@ func EditPatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusBadRequest, []string{errMapping.Error()})
 	}
 
+	// edit paten
 	if err := tx.WithContext(ctx).Where("id", id).Updates(paten).Error; err != nil {
 		tx.Rollback()
 		return checkPatenError(c, err)
 	}
 
-	dokumenPaten := []model.DokumenPaten{}
-	form, _ := c.MultipartForm()
-	files := form.File["files"]
-	if files != nil && req.Dokumen != nil {
-		minLen := util.CountMin(len(req.Dokumen), len(files))
-		for i := 0; i < minLen; i++ {
-			file := files[i]
-			dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
-			if err != nil {
-				tx.Rollback()
-				if strings.Contains(err.Error(), "unsupported") {
-					return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
-				}
+	// insert dokumen
+	idDokumen, errDokumen := helper.InsertDokumen(helper.InsertDokumenParam{
+		C:       c,
+		Ctx:     ctx,
+		DB:      db,
+		TX:      tx,
+		Fitur:   "paten",
+		IdFitur: id,
+		Data:    req.Dokumen,
+	})
 
-				return util.FailedResponse(c, http.StatusInternalServerError, nil)
-			}
-
-			dokumenPaten = append(dokumenPaten, *req.Dokumen[i].MapRequest(&request.DokumenPatenPayload{
-				IdFile:    dFile.Id,
-				IdPaten:   id,
-				NamaFile:  dFile.Name,
-				JenisFile: dFile.MimeType,
-				Url:       util.CreateFileUrl(dFile.Id),
-			}))
-
-			if req.Dokumen[i].Nama == "" {
-				dokumenPaten[i].Nama = dFile.Name
-			}
-		}
-
-		if err := tx.WithContext(ctx).Create(&dokumenPaten).Error; err != nil {
-			tx.Rollback()
-			deleteBatchDokumenPaten(dokumenPaten)
-			if strings.Contains(err.Error(), "jenis_dokumen") {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
-			}
-
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
+	if errDokumen != nil {
+		return errDokumen
 	}
 
 	penulis := []model.PenulisPaten{}
@@ -264,13 +214,14 @@ func EditPatenHandler(c echo.Context) error {
 
 	if err := tx.WithContext(ctx).Delete(new(model.PenulisPaten), "id_paten", id).Error; err != nil {
 		tx.Rollback()
-		deleteBatchDokumenPaten(dokumenPaten)
+		helper.DeleteBatchDokumen(idDokumen)
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
+	// insert penulis
 	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
 		tx.Rollback()
-		deleteBatchDokumenPaten(dokumenPaten)
+		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
 			return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis penulis tidak valid"})
 		}
@@ -283,7 +234,7 @@ func EditPatenHandler(c echo.Context) error {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		deleteBatchDokumenPaten(dokumenPaten)
+		helper.DeleteBatchDokumen(idDokumen)
 		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
 	}
 
@@ -303,8 +254,8 @@ func DeletePatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusUnauthorized, nil)
 	}
 
-	dokumen := []model.DokumenPaten{}
-	if err := db.WithContext(ctx).Select("id").Where("id_paten", id).Find(&dokumen).Error; err != nil {
+	idDokumen := []string{}
+	if err := db.WithContext(ctx).Model(&model.DokumenPaten{}).Select("id").Where("id_paten", id).Find(&idDokumen).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
 
@@ -317,7 +268,7 @@ func DeletePatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusNotFound, nil)
 	}
 
-	deleteBatchDokumenPaten(dokumen)
+	helper.DeleteBatchDokumen(idDokumen)
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
 }
@@ -368,11 +319,6 @@ func GetDokumenPatenByIdHandler(c echo.Context) error {
 
 func EditDokumenPatenHandler(c echo.Context) error {
 	id := c.Param("id")
-	req := &request.DokumenPaten{}
-	reqData := c.FormValue("data")
-	if err := json.Unmarshal([]byte(reqData), req); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
-	}
 
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
@@ -391,57 +337,13 @@ func EditDokumenPatenHandler(c echo.Context) error {
 		return util.FailedResponse(c, http.StatusUnauthorized, nil)
 	}
 
-	var dokumen *model.DokumenPaten
-	file, _ := c.FormFile("file")
-	if file != nil {
-		dFile, err := storage.CreateFile(file, env.GetPatenFolderId())
-		if err != nil {
-			if strings.Contains(err.Error(), "unsupported") {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{err.Error()})
-			}
-
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
-		dokumen = req.MapRequest(&request.DokumenPatenPayload{
-			IdFile:    dFile.Id,
-			NamaFile:  dFile.Name,
-			JenisFile: dFile.MimeType,
-			Url:       util.CreateFileUrl(dFile.Id),
-		})
-
-		if dokumen.Nama == "" {
-			dokumen.Nama = dFile.Name
-		}
-
-		newId := dFile.Id
-		year, month, day := time.Now().Date()
-		tanggalUpload := fmt.Sprintf("%d-%d-%d", year, month, day)
-		updateDokumenQuery := fmt.Sprintf(`UPDATE dokumen_paten SET 
-			id='%s',id_jenis_dokumen=%d,nama='%s',nama_file='%s',jenis_file='%s',url='%s',keterangan='%s',tanggal_upload='%v' WHERE id='%s'`,
-			newId, dokumen.IdJenisDokumen, dokumen.Nama, dokumen.NamaFile, dokumen.JenisFile, dokumen.Url, dokumen.Keterangan, tanggalUpload, id)
-		if err := db.WithContext(ctx).Exec(updateDokumenQuery).Error; err != nil {
-			storage.DeleteFile(newId)
-			if strings.Contains(err.Error(), "jenis_dokumen") {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
-			}
-
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-
-		storage.DeleteFile(id)
-	} else {
-		dokumen = req.MapRequest(&request.DokumenPatenPayload{})
-		if err := db.WithContext(ctx).Omit("tanggal_upload").Where("id", id).Updates(&dokumen).Error; err != nil {
-			if strings.Contains(err.Error(), "jenis_dokumen") {
-				return util.FailedResponse(c, http.StatusBadRequest, []string{"jenis dokumen tidak valid"})
-			}
-
-			return util.FailedResponse(c, http.StatusInternalServerError, nil)
-		}
-	}
-
-	return util.SuccessResponse(c, http.StatusOK, nil)
+	return helper.EditDokumen(helper.EditDokumenParam{
+		C:     c,
+		Ctx:   ctx,
+		DB:    db,
+		Fitur: "paten",
+		Id:    id,
+	})
 }
 
 func DeleteDokumenPatenHandler(c echo.Context) error {
@@ -522,10 +424,4 @@ func checkPatenError(c echo.Context, err error) error {
 	}
 
 	return util.FailedResponse(c, http.StatusInternalServerError, nil)
-}
-
-func deleteBatchDokumenPaten(dokumen []model.DokumenPaten) {
-	for _, v := range dokumen {
-		storage.DeleteFile(v.ID)
-	}
 }
