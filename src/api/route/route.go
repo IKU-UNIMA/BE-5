@@ -77,6 +77,17 @@ func InitServer() *echo.Echo {
 	dosen.PUT("/:id", handler.EditDosenHandler, customMiddleware.GrantAdminUmum)
 	dosen.DELETE("/:id", handler.DeleteDosenHandler, customMiddleware.GrantAdminUmum)
 
+	publikasi := v1.Group("/publikasi", customMiddleware.Authentication)
+	publikasi.GET("", handler.GetAllPublikasiHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	publikasi.GET("/:id", handler.GetPublikasiByIdHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	publikasi.POST("", handler.InsertPublikasiHandler, customMiddleware.GrantDosen)
+	publikasi.PUT("/:id", handler.EditPublikasiHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	publikasi.DELETE("/:id", handler.DeletePublikasiHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	publikasi.GET("/kategori", handler.GetAllKategoriPublikasiHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	publikasi.GET("/dokumen/:id", handler.GetDokumenPublikasiByIdHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	publikasi.PUT("/dokumen/:id", handler.EditDokumenPublikasiHandler, customMiddleware.GrantAdminIKU5AndDosen)
+	publikasi.DELETE("/dokumen/:id", handler.DeleteDokumenPublikasiHandler, customMiddleware.GrantAdminIKU5AndDosen)
+
 	paten := v1.Group("/paten", customMiddleware.Authentication)
 	paten.GET("", handler.GetAllPatenHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	paten.GET("/:id", handler.GetPatenByIdHandler, customMiddleware.GrantAdminIKU5AndDosen)
