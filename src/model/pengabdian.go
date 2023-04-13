@@ -75,6 +75,12 @@ func (p *Pengabdian) MapToResponse() *response.Pengabdian {
 		ID:               p.ID,
 		TahunPelaksanaan: tahunPelaksanaan,
 		LamaKegiatan:     p.LamaKegiatan,
+		Dosen: response.DosenReference{
+			ID:   p.Dosen.ID,
+			Nama: p.Dosen.Nama,
+			Nidn: p.Dosen.Nidn,
+			Nip:  p.Dosen.Nip,
+		},
 	}
 }
 

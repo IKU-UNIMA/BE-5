@@ -55,7 +55,9 @@ func GetAllPengabdianHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	data := []model.Pengabdian{}
 
-	if err := db.WithContext(ctx).Select("id", "tahun_pelaksanaan", "lama_kegiatan").
+	if err := db.WithContext(ctx).
+		Preload("Dosen").
+		Select("id", "id_dosen", "tahun_pelaksanaan", "lama_kegiatan").
 		Offset(util.CountOffset(queryParams.Page)).Limit(20).
 		Where(condition).Find(&data).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
@@ -82,6 +84,7 @@ func GetPengabdianByIdHandler(c echo.Context) error {
 	}
 
 	if err := db.WithContext(ctx).Table("pengabdian").
+		Preload("Dosen").Preload("Dosen.Fakultas").Preload("Dosen.Prodi").
 		Preload("Dokumen").Preload("Dokumen.JenisDokumen").
 		Preload("AnggotaDosen", "jenis_anggota='dosen'").
 		Preload("AnggotaMahasiswa", "jenis_anggota='mahasiswa'").
