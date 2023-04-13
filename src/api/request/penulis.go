@@ -10,6 +10,18 @@ type Penulis struct {
 	IsAuthor bool   `json:"is_author"`
 }
 
+func (r *Penulis) MapRequestToPublikasi(idPublikasi int, jenisPenulis string) *model.PenulisPublikasi {
+	return &model.PenulisPublikasi{
+		IdPublikasi:  idPublikasi,
+		Nama:         r.Nama,
+		JenisPenulis: jenisPenulis,
+		Urutan:       r.Urutan,
+		Afiliasi:     r.Afiliasi,
+		Peran:        r.Peran,
+		IsAuthor:     r.IsAuthor,
+	}
+}
+
 func (r *Penulis) MapRequestToPaten(idPaten int, jenisPenulis string) *model.PenulisPaten {
 	return &model.PenulisPaten{
 		IdPaten:      idPaten,
