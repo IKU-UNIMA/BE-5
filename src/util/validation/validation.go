@@ -91,10 +91,8 @@ func ValidatePenulis(req *request.Penulis) error {
 
 func ValidateAnggota(req *request.AnggotaPengabdian) error {
 	errs := map[string]string{}
-	if req.JenisAnggota == "" {
-		errs["message"] = "jenis penulis wajib diisi"
-	} else if req.Nama == "" {
-		errs["message"] = "nama penulis wajib diisi"
+	if req.Nama == "" {
+		errs["message"] = "nama anggota wajib diisi"
 	} else if req.Peran == "" {
 		errs["message"] = "peran wajib diisi"
 	}

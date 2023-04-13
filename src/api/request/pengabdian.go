@@ -27,14 +27,15 @@ type (
 		TglSkPenugasan          string              `json:"tgl_sk_penugasan" validate:"required"`
 		MitraLitabmas           string              `json:"mitra_litabmas"`
 		Dokumen                 []Dokumen           `json:"dokumen"`
-		Anggota                 []AnggotaPengabdian `json:"anggota"`
+		AnggotaDosen            []AnggotaPengabdian `json:"anggota_dosen"`
+		AnggotaMahasiswa        []AnggotaPengabdian `json:"anggota_mahasiswa"`
+		AnggotaEksternal        []AnggotaPengabdian `json:"anggota_eksternal"`
 	}
 
 	AnggotaPengabdian struct {
-		Nama         string `json:"nama"`
-		JenisAnggota string `json:"jenis_anggota"`
-		Peran        string `json:"peran"`
-		IsActive     bool   `json:"is_active"`
+		Nama     string `json:"nama"`
+		Peran    string `json:"peran"`
+		IsActive bool   `json:"is_active"`
 	}
 )
 
@@ -66,11 +67,11 @@ func (r *Pengabdian) MapRequest() (*model.Pengabdian, error) {
 	}, nil
 }
 
-func (r *AnggotaPengabdian) MapRequest(idPengabdian int) *model.AnggotaPengabdian {
+func (r *AnggotaPengabdian) MapRequest(idPengabdian int, jenisAnggota string) *model.AnggotaPengabdian {
 	return &model.AnggotaPengabdian{
 		IdPengabdian: idPengabdian,
 		Nama:         r.Nama,
-		JenisAnggota: r.JenisAnggota,
+		JenisAnggota: jenisAnggota,
 		Peran:        r.Peran,
 		IsActive:     r.IsActive,
 	}
