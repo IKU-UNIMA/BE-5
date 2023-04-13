@@ -71,9 +71,7 @@ func ValidateDokumen(req *request.Dokumen) error {
 
 func ValidatePenulis(req *request.Penulis) error {
 	errs := map[string]string{}
-	if req.JenisPenulis == "" {
-		errs["message"] = "jenis penulis wajib diisi"
-	} else if req.Nama == "" {
+	if req.Nama == "" {
 		errs["message"] = "nama penulis wajib diisi"
 	} else if req.Peran == "" {
 		errs["message"] = "peran wajib diisi"

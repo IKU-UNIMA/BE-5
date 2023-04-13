@@ -19,7 +19,9 @@ type Paten struct {
 	TautanEksternal   string    `json:"tautan_eksternal"`
 	Keterangan        string    `json:"keterangan"`
 	Dokumen           []Dokumen `json:"dokumen"`
-	Penulis           []Penulis `json:"penulis"`
+	PenulisDosen      []Penulis `json:"penulis_dosen"`
+	PenulisMahasiswa  []Penulis `json:"penulis_mahasiswa"`
+	PenulisLain       []Penulis `json:"penulis_lain"`
 }
 
 func (r *Paten) MapRequest() (*model.Paten, error) {
