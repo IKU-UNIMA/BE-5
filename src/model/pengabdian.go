@@ -30,7 +30,7 @@ type (
 		MitraLitabmas           string              `gorm:"type:varchar(255)"`
 		Kategori                KategoriPengabdian  `gorm:"foreignKey:IdKategori"`
 		Dosen                   Dosen               `gorm:"foreignKey:IdDosen;OnDelete:CASCADES"`
-		Penulis                 []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
+		Anggota                 []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
 		Dokumen                 []DokumenPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
 	}
 
