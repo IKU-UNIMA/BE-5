@@ -4,6 +4,7 @@ type (
 	Paten struct {
 		ID                int             `json:"id"`
 		IdDosen           int             `json:"-"`
+		Dosen             DosenReference  `gorm:"foreignKey:IdDosen" json:"dosen"`
 		IdKategori        int             `json:"-"`
 		IdJenisPenelitian int             `json:"-"`
 		Judul             string          `json:"judul"`
@@ -15,6 +16,8 @@ type (
 	DetailPaten struct {
 		ID                int             `json:"id"`
 		IdKategori        int             `json:"id_kategori"`
+		IdDosen           int             `json:"-"`
+		Dosen             Dosen           `gorm:"foreignKey:IdDosen" json:"dosen"`
 		IdJenisPenelitian int             `json:"-"`
 		IdKategoriCapaian int             `json:"-"`
 		Judul             string          `json:"judul"`
