@@ -2,14 +2,18 @@ package response
 
 type (
 	Pengabdian struct {
-		ID               int    `json:"id"`
-		TahunPelaksanaan string `json:"tahun_pelaksanaan"`
-		LamaKegiatan     uint   `json:"lama_kegiatan"`
+		ID               int            `json:"id"`
+		IdDosen          int            `json:"-"`
+		Dosen            DosenReference `gorm:"foreignKey:IdDosen" json:"dosen"`
+		TahunPelaksanaan string         `json:"tahun_pelaksanaan"`
+		LamaKegiatan     uint           `json:"lama_kegiatan"`
 	}
 
 	DetailPengabdian struct {
 		ID                      int                 `json:"id"`
 		IdKategori              int                 `json:"id_kategori"`
+		IdDosen                 int                 `json:"-"`
+		Dosen                   Dosen               `gorm:"foreignKey:IdDosen" json:"dosen"`
 		TahunKegiatan           int                 `json:"tahun_anggaran"`
 		Afiliasi                string              `json:"afiliasi"`
 		KelompokBidang          string              `json:"kelompok_bidang"`
