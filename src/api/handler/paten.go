@@ -81,9 +81,9 @@ func GetPatenByIdHandler(c echo.Context) error {
 	}
 
 	if err := db.WithContext(ctx).Table("paten").
-		Preload("Dosen").Preload("Dosen.Fakultas").Preload("Dosen.Prodi").
+		Preload("Dosen.Fakultas").Preload("Dosen.Prodi").
 		Preload("JenisPenelitian").Preload("KategoriCapaian").
-		Preload("Dokumen").Preload("Dokumen.JenisDokumen").
+		Preload("Dokumen.JenisDokumen").
 		Preload("PenulisDosen", "jenis_penulis = 'dosen'").
 		Preload("PenulisMahasiswa", "jenis_penulis = 'mahasiswa'").
 		Preload("PenulisLain", "jenis_penulis = 'lain'").
