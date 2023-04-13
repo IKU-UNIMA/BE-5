@@ -25,4 +25,15 @@ type (
 		Fakultas          Fakultas       `gorm:"foreignKey:IdFakultas" json:"fakultas"`
 		Prodi             ProdiReference `gorm:"foreignKey:IdProdi" json:"prodi"`
 	}
+
+	DosenReference struct {
+		ID   int    `json:"id"`
+		Nama string `json:"nama"`
+		Nidn string `json:"nidn"`
+		Nip  string `json:"nip"`
+	}
 )
+
+func (DosenReference) TableName() string {
+	return "dosen"
+}
