@@ -57,7 +57,7 @@ func GetAllPublikasiHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	data := []response.Publikasi{}
 
-	if err := db.WithContext(ctx).
+	if err := db.WithContext(ctx).Preload("Dosen").
 		Preload("JenisPenelitian").Preload("Kategori").
 		Offset(util.CountOffset(queryParams.Page)).Limit(20).
 		Where(condition).Find(&data).Error; err != nil {
@@ -82,6 +82,7 @@ func GetPublikasiByIdHandler(c echo.Context) error {
 	}
 
 	if err := db.WithContext(ctx).Table("publikasi").
+		Preload("Dosen").Preload("Dosen.Fakultas").Preload("Dosen.Prodi").
 		Preload("JenisPenelitian").Preload("KategoriCapaian").
 		Preload("Dokumen").Preload("Dokumen.JenisDokumen").
 		Preload("PenulisDosen", "jenis_penulis = 'dosen'").
