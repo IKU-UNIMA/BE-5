@@ -73,6 +73,8 @@ func ValidatePenulis(req *request.Penulis) error {
 	errs := map[string]string{}
 	if req.Nama == "" {
 		errs["message"] = "nama penulis wajib diisi"
+	} else if req.Urutan < 1 {
+		errs["message"] = "urutan wajib diisi"
 	} else if req.Peran == "" {
 		errs["message"] = "peran wajib diisi"
 	}
