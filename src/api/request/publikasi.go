@@ -36,7 +36,9 @@ type Publikasi struct {
 	Tautan              string    `json:"tautan"`
 	Keterangan          string    `json:"keterangan"`
 	Dokumen             []Dokumen `json:"dokumen"`
-	Penulis             []Penulis `json:"penulis"`
+	PenulisDosen        []Penulis `json:"penulis_dosen"`
+	PenulisMahasiswa    []Penulis `json:"penulis_mahasiswa"`
+	PenulisLain         []Penulis `json:"penulis_lain"`
 }
 
 func (r *Publikasi) MapRequest() (*model.Publikasi, error) {
