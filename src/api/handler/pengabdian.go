@@ -105,7 +105,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 		return err
 	}
 
-	if len(req.Anggota) < 1 {
+	if len(req.AnggotaDosen) < 1 {
 		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "anggota tidak boleh kosong"})
 	}
 
@@ -150,18 +150,39 @@ func InsertPengabdianHandler(c echo.Context) error {
 		return err
 	}
 
-	// insert anggota
+	// mapping anggota
 	anggota := []model.AnggotaPengabdian{}
-	for _, v := range req.Anggota {
+	for _, v := range req.AnggotaDosen {
 		if err := validation.ValidateAnggota(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
 			return err
 		}
 
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID))
+		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "dosen"))
 	}
 
+	for _, v := range req.AnggotaMahasiswa {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "mahasiswa"))
+	}
+
+	for _, v := range req.AnggotaEksternal {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "eksternal"))
+	}
+
+	// insert anggota
 	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
@@ -208,7 +229,7 @@ func EditPengabdianHandler(c echo.Context) error {
 		return err
 	}
 
-	if len(req.Anggota) < 1 {
+	if len(req.AnggotaDosen) < 1 {
 		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "penulis tidak boleh kosong"})
 	}
 
@@ -238,15 +259,36 @@ func EditPengabdianHandler(c echo.Context) error {
 		return errDokumen
 	}
 
+	// mapping anggota
 	anggota := []model.AnggotaPengabdian{}
-	for _, v := range req.Anggota {
+	for _, v := range req.AnggotaDosen {
 		if err := validation.ValidateAnggota(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
 			return err
 		}
 
-		anggota = append(anggota, *v.MapRequest(id))
+		anggota = append(anggota, *v.MapRequest(id, "dosen"))
+	}
+
+	for _, v := range req.AnggotaMahasiswa {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest(id, "mahasiswa"))
+	}
+
+	for _, v := range req.AnggotaEksternal {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			tx.Rollback()
+			helper.DeleteBatchDokumen(idDokumen)
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest(id, "eksternal"))
 	}
 
 	if err := tx.WithContext(ctx).Delete(new(model.AnggotaPengabdian), "id_pengabdian", id).Error; err != nil {
