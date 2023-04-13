@@ -106,7 +106,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 	}
 
 	if len(req.AnggotaDosen) < 1 {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "anggota tidak boleh kosong"})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "anggota dosen tidak boleh kosong"})
 	}
 
 	claims := util.GetClaimsFromContext(c)
@@ -230,7 +230,7 @@ func EditPengabdianHandler(c echo.Context) error {
 	}
 
 	if len(req.AnggotaDosen) < 1 {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "penulis tidak boleh kosong"})
+		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "anggota dosen tidak boleh kosong"})
 	}
 
 	pengabdian, errMapping := req.MapRequest()
