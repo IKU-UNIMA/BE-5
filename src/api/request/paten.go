@@ -9,6 +9,7 @@ import (
 type Paten struct {
 	IdKategori        int       `json:"id_kategori" validate:"required"`
 	IdJenisPenelitian int       `json:"id_jenis" validate:"required"`
+	IdKategoriCapaian int       `json:"id_kategori_capaian"`
 	Judul             string    `json:"judul" validate:"required"`
 	JumlahHalaman     int       `json:"jumlah_halaman"`
 	Tanggal           string    `json:"tanggal" validate:"required"`
@@ -30,6 +31,7 @@ func (r *Paten) MapRequest() (*model.Paten, error) {
 	return &model.Paten{
 		IdKategori:        r.IdKategori,
 		IdJenisPenelitian: r.IdJenisPenelitian,
+		IdKategoriCapaian: r.IdKategoriCapaian,
 		Judul:             r.Judul,
 		Tanggal:           tanggal,
 		JumlahHalaman:     r.JumlahHalaman,
