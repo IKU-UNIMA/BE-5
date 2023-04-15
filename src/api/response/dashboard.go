@@ -16,4 +16,10 @@ type (
 		NamaFakultas string `json:"nama_fakultas"`
 		Jumlah       int    `json:"jumlah"`
 	}
+
+	DashboardTotal struct {
+		TotalPublikasi  int `json:"total_publikasi"`
+		TotalPaten      int `json:"total_paten"`
+		TotalPengabdian int `json:"total_pengabdian"`
+	}
 )
