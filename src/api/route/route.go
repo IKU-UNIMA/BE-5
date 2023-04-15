@@ -110,5 +110,10 @@ func InitServer() *echo.Echo {
 	pengabdian.PUT("/dokumen/:id", handler.EditDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	pengabdian.DELETE("/dokumen/:id", handler.DeleteDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 
+	dashboard := v1.Group("/dashboard")
+	dashboard.GET("/:fitur/tahun/:tahun", handler.GetDashboardHandler)
+	dashboard.GET("/detail/:fitur", handler.GetDetailDashboardHandler)
+	dashboard.GET("/total/:tahun", handler.GetDashboardTotalHandler)
+
 	return app
 }
