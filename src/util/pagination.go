@@ -5,6 +5,6 @@ type Pagination struct {
 	Data interface{} `json:"data"`
 }
 
-func CountOffset(page int) int {
-	return (page - 1) * 10
+func CountOffset(page, limit int) int {
+	return (page - 1) * limit
 }
