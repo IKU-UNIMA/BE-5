@@ -30,6 +30,7 @@ func GetAllDosenHandler(c echo.Context) error {
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 	result := []response.Dosen{}
+	limit := 20
 	condition := ""
 
 	if queryParams.Fakultas != 0 && queryParams.Prodi == 0 {
@@ -58,7 +59,7 @@ func GetAllDosenHandler(c echo.Context) error {
 	}
 
 	if err := db.WithContext(ctx).Preload("Fakultas").Preload("Prodi").Where(condition).
-		Offset(util.CountOffset(queryParams.Page)).Limit(20).
+		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
 		Find(&result).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}

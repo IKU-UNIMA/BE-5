@@ -54,11 +54,12 @@ func GetAllPatenHandler(c echo.Context) error {
 
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
+	limit := 20
 	data := []response.Paten{}
 
 	if err := db.WithContext(ctx).Preload("Dosen").
 		Preload("JenisPenelitian").Preload("Kategori").
-		Offset(util.CountOffset(queryParams.Page)).Limit(20).
+		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
 		Where(condition).Find(&data).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}

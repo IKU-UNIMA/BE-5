@@ -53,12 +53,13 @@ func GetAllPengabdianHandler(c echo.Context) error {
 
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
+	limit := 20
 	data := []model.Pengabdian{}
 
 	if err := db.WithContext(ctx).
 		Preload("Dosen").
 		Select("id", "id_dosen", "tahun_pelaksanaan", "lama_kegiatan").
-		Offset(util.CountOffset(queryParams.Page)).Limit(20).
+		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
 		Where(condition).Find(&data).Error; err != nil {
 		return util.FailedResponse(c, http.StatusInternalServerError, nil)
 	}
