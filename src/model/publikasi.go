@@ -24,6 +24,7 @@ type (
 		Halaman             string    `gorm:"type:varchar(255)"`
 		JumlahHalaman       int       `gorm:"type:smallint"`
 		Penerbit            string    `gorm:"type:varchar(255)"`
+		Penyelenggara       string    `gorm:"type:varchar(255)"`
 		KotaPenyelenggaraan string    `gorm:"type:varchar(255)"`
 		IsSeminar           bool
 		IsProsiding         bool
