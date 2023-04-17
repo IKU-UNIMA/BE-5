@@ -35,6 +35,7 @@ type (
 		Halaman             string             `json:"halaman"`
 		JumlahHalaman       int                `json:"jumlah_halaman"`
 		Penerbit            string             `json:"penerbit"`
+		Penyelenggara       string             `json:"penyelenggara"`
 		KotaPenyelenggaraan string             `json:"kota_penyelenggaraan"`
 		IsSeminar           bool               `json:"is_seminar"`
 		IsProsiding         bool               `json:"is_prosiding"`

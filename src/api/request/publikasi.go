@@ -25,6 +25,7 @@ type Publikasi struct {
 	Halaman             string    `json:"halaman"`
 	JumlahHalaman       int       `json:"jumlah_halaman"`
 	Penerbit            string    `json:"penerbit"`
+	Penyelenggara       string    `json:"penyelenggara"`
 	KotaPenyelenggaraan string    `json:"kota_penyelenggaraan"`
 	IsSeminar           bool      `json:"is_seminar"`
 	IsProsiding         bool      `json:"is_prosiding"`
@@ -71,6 +72,7 @@ func (r *Publikasi) MapRequest() (*model.Publikasi, error) {
 		Halaman:             r.Halaman,
 		JumlahHalaman:       r.JumlahHalaman,
 		Penerbit:            r.Penerbit,
+		Penyelenggara:       r.Penyelenggara,
 		KotaPenyelenggaraan: r.KotaPenyelenggaraan,
 		IsSeminar:           r.IsSeminar,
 		IsProsiding:         r.IsProsiding,
