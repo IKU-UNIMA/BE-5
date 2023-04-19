@@ -4,7 +4,7 @@ import (
 	"be-5/src/api/request"
 	"be-5/src/util"
 	"net/http"
-	"regexp"
+	"reflect"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -16,6 +16,15 @@ type CustomValidator struct {
 }
 
 func (cv *CustomValidator) Validate(i interface{}) error {
+	cv.Validator.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
 	if err := cv.Validator.Struct(i); err != nil {
 		errs := err.(validator.ValidationErrors)
 		httpCode := http.StatusBadRequest
@@ -32,17 +41,10 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 func translate(errs validator.ValidationErrors) map[string]string {
 	errors := map[string]string{}
 	for _, e := range errs {
-		key := createErrorKey(e.Field())
-		errors[key] = getTagMessage(e)
+		errors[e.Field()] = getTagMessage(e)
 	}
 
 	return errors
-}
-
-func createErrorKey(key string) string {
-	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-	snake := matchAllCap.ReplaceAllString(key, "${1}_${2}")
-	return strings.ToLower(snake)
 }
 
 func getTagMessage(e validator.FieldError) string {
