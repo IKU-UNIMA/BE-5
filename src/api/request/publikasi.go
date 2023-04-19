@@ -45,20 +45,28 @@ type Publikasi struct {
 
 func (r *Publikasi) MapRequest() (*model.Publikasi, error) {
 	var (
-		tanggalTerbit, waktuPelaksanaan time.Time
-		err                             error
+		tanggalTerbit, waktuPelaksanaan *time.Time
 	)
+
 	if r.TanggalTerbit != "" {
-		tanggalTerbit, err = util.ConvertStringToDate(r.TanggalTerbit)
+		tanggal, err := util.ConvertStringToDate(r.TanggalTerbit)
 		if err != nil {
 			return nil, errors.New("format tanggal terbit salah")
+		}
+
+		if !tanggal.IsZero() {
+			tanggalTerbit = &tanggal
 		}
 	}
 
 	if r.WaktuPelaksanaan != "" {
-		waktuPelaksanaan, err = util.ConvertStringToDate(r.WaktuPelaksanaan)
+		tanggal, err := util.ConvertStringToDate(r.WaktuPelaksanaan)
 		if err != nil {
 			return nil, errors.New("format waktu pelaksanaan salah")
+		}
+
+		if !tanggal.IsZero() {
+			tanggalTerbit = &tanggal
 		}
 	}
 
