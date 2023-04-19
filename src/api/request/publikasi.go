@@ -4,6 +4,7 @@ import (
 	"be-5/src/model"
 	"be-5/src/util"
 	"errors"
+	"time"
 )
 
 type Publikasi struct {
@@ -17,7 +18,7 @@ type Publikasi struct {
 	NamaKoranMajalah    string    `json:"nama_koran_majalah"`
 	NamaSeminar         string    `json:"nama_seminar"`
 	TautanLamanJurnal   string    `json:"tautan_laman_jurnal"`
-	TanggalTerbit       string    `json:"tanggal_terbit" validate:"required"`
+	TanggalTerbit       string    `json:"tanggal_terbit"`
 	WaktuPelaksanaan    string    `json:"waktu_pelaksanaan"`
 	Volume              string    `json:"volume"`
 	Edisi               string    `json:"edisi"`
@@ -43,14 +44,22 @@ type Publikasi struct {
 }
 
 func (r *Publikasi) MapRequest() (*model.Publikasi, error) {
-	tanggalTerbit, err := util.ConvertStringToDate(r.TanggalTerbit)
-	if err != nil {
-		return nil, errors.New("format tanggal terbit salah")
+	var (
+		tanggalTerbit, waktuPelaksanaan time.Time
+		err                             error
+	)
+	if r.TanggalTerbit != "" {
+		tanggalTerbit, err = util.ConvertStringToDate(r.TanggalTerbit)
+		if err != nil {
+			return nil, errors.New("format tanggal terbit salah")
+		}
 	}
 
-	waktuPelaksanaan, err := util.ConvertStringToDate(r.WaktuPelaksanaan)
-	if err != nil {
-		return nil, errors.New("format waktu pelaksanaan salah")
+	if r.WaktuPelaksanaan != "" {
+		waktuPelaksanaan, err = util.ConvertStringToDate(r.WaktuPelaksanaan)
+		if err != nil {
+			return nil, errors.New("format waktu pelaksanaan salah")
+		}
 	}
 
 	return &model.Publikasi{
