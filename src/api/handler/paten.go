@@ -478,16 +478,16 @@ func checkPatenError(c echo.Context, err error) error {
 		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
 	}
 
+	if strings.Contains(err.Error(), "id_kategori_capaian") {
+		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "kategori capaian tidak ditemukan"})
+	}
+
 	if strings.Contains(err.Error(), "id_kategori") {
 		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
 	}
 
 	if strings.Contains(err.Error(), "id_jenis_penelitian") {
 		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "jenis penelitian tidak ditemukan"})
-	}
-
-	if strings.Contains(err.Error(), "id_kategori_capaian") {
-		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "kategori capaian tidak ditemukan"})
 	}
 
 	return util.FailedResponse(c, http.StatusInternalServerError, nil)
