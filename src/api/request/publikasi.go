@@ -17,7 +17,7 @@ type Publikasi struct {
 	NamaKoranMajalah    string    `json:"nama_koran_majalah"`
 	NamaSeminar         string    `json:"nama_seminar"`
 	TautanLamanJurnal   string    `json:"tautan_laman_jurnal"`
-	TanggalTerbit       string    `json:"tanggal_terbit" validate:"required"`
+	TanggalTerbit       string    `json:"tanggal_terbit"`
 	WaktuPelaksanaan    string    `json:"waktu_pelaksanaan"`
 	Volume              string    `json:"volume"`
 	Edisi               string    `json:"edisi"`
