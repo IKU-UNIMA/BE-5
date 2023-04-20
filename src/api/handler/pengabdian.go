@@ -80,8 +80,8 @@ func GetPengabdianByIdHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	data := &response.DetailPengabdian{}
 
-	if !pengabdianAuthorization(c, id, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := pengabdianAuthorization(c, id, db, ctx); err != nil {
+		return nil
 	}
 
 	if err := db.WithContext(ctx).Table("pengabdian").
@@ -227,8 +227,8 @@ func EditPengabdianHandler(c echo.Context) error {
 	tx := db.Begin()
 	ctx := c.Request().Context()
 
-	if !pengabdianAuthorization(c, id, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := pengabdianAuthorization(c, id, db, ctx); err != nil {
+		return err
 	}
 
 	req := &request.Pengabdian{}
@@ -349,8 +349,8 @@ func DeletePengabdianHandler(c echo.Context) error {
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 
-	if !pengabdianAuthorization(c, id, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := pengabdianAuthorization(c, id, db, ctx); err != nil {
+		return err
 	}
 
 	idDokumen := []string{}
@@ -398,8 +398,8 @@ func GetDokumenPengabdianByIdHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
-	if !pengabdianAuthorization(c, idPengabdian, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := pengabdianAuthorization(c, idPengabdian, db, ctx); err != nil {
+		return err
 	}
 
 	data := &response.DokumenPengabdian{}
@@ -431,8 +431,8 @@ func EditDokumenPengabdianHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
-	if !pengabdianAuthorization(c, idPengabdian, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := pengabdianAuthorization(c, idPengabdian, db, ctx); err != nil {
+		return err
 	}
 
 	return helper.EditDokumen(helper.EditDokumenParam{
@@ -463,8 +463,8 @@ func DeleteDokumenPengabdianHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
-	if !pengabdianAuthorization(c, idPengabdian, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := pengabdianAuthorization(c, idPengabdian, db, ctx); err != nil {
+		return err
 	}
 
 	tx := db.Begin()
@@ -490,19 +490,28 @@ func DeleteDokumenPengabdianHandler(c echo.Context) error {
 	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
-func pengabdianAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Context) bool {
+func pengabdianAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Context) error {
 	claims := util.GetClaimsFromContext(c)
 	role := claims["role"].(string)
 	idDosen := int(claims["id"].(float64))
 	if role == string(util.ADMIN) {
-		return true
+		return nil
 	}
 
 	result := 0
-	if err := db.WithContext(ctx).Table("pengabdian").Select("id_dosen").
-		Where("id", id).Scan(&result).Error; err != nil {
-		return false
+	query := db.WithContext(ctx).Table("pengabdian").Select("id_dosen").
+		Where("id", id).Scan(&result)
+	if query.Error != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
-	return result == idDosen
+	if query.RowsAffected < 1 {
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "data pengabdian tidak ditemukan"})
+	}
+
+	if result == idDosen {
+		return nil
+	}
+
+	return util.FailedResponse(http.StatusUnauthorized, nil)
 }
