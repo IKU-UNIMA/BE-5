@@ -157,6 +157,10 @@ func InsertPatenHandler(c echo.Context) error {
 	}
 
 	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
 		if err := validation.ValidatePenulis(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
@@ -167,6 +171,10 @@ func InsertPatenHandler(c echo.Context) error {
 	}
 
 	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
 		if err := validation.ValidatePenulis(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
@@ -266,6 +274,10 @@ func EditPatenHandler(c echo.Context) error {
 	}
 
 	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
 		if err := validation.ValidatePenulis(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
@@ -276,6 +288,10 @@ func EditPatenHandler(c echo.Context) error {
 	}
 
 	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
 		if err := validation.ValidatePenulis(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
