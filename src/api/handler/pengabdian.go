@@ -167,6 +167,10 @@ func InsertPengabdianHandler(c echo.Context) error {
 	}
 
 	for _, v := range req.AnggotaMahasiswa {
+		if len(req.AnggotaMahasiswa) == 1 && req.AnggotaMahasiswa[0].Nama == "" {
+			break
+		}
+
 		if err := validation.ValidateAnggota(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
@@ -177,6 +181,10 @@ func InsertPengabdianHandler(c echo.Context) error {
 	}
 
 	for _, v := range req.AnggotaEksternal {
+		if len(req.AnggotaEksternal) == 1 && req.AnggotaEksternal[0].Nama == "" {
+			break
+		}
+
 		if err := validation.ValidateAnggota(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
@@ -276,6 +284,10 @@ func EditPengabdianHandler(c echo.Context) error {
 	}
 
 	for _, v := range req.AnggotaMahasiswa {
+		if len(req.AnggotaMahasiswa) == 1 && req.AnggotaMahasiswa[0].Nama == "" {
+			break
+		}
+
 		if err := validation.ValidateAnggota(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
@@ -286,6 +298,10 @@ func EditPengabdianHandler(c echo.Context) error {
 	}
 
 	for _, v := range req.AnggotaEksternal {
+		if len(req.AnggotaEksternal) == 1 && req.AnggotaEksternal[0].Nama == "" {
+			break
+		}
+
 		if err := validation.ValidateAnggota(&v); err != nil {
 			tx.Rollback()
 			helper.DeleteBatchDokumen(idDokumen)
