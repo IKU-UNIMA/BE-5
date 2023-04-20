@@ -141,12 +141,7 @@ func checkDashboardFitur(c echo.Context, fitur string) error {
 	case "pengabdian":
 		break
 	default:
-		httpCode := http.StatusBadRequest
-		return echo.NewHTTPError(httpCode, util.Base{
-			Status:  httpCode,
-			Message: http.StatusText(httpCode),
-			Errors:  map[string]string{"message": "fitur tidak didukung"},
-		})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "fitur tidak didukung"})
 	}
 
 	return nil

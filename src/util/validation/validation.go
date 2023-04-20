@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/labstack/echo/v4"
 )
 
 type CustomValidator struct {
@@ -27,12 +26,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	})
 	if err := cv.Validator.Struct(i); err != nil {
 		errs := err.(validator.ValidationErrors)
-		httpCode := http.StatusBadRequest
-		return echo.NewHTTPError(httpCode, util.Base{
-			Status:  httpCode,
-			Message: http.StatusText(httpCode),
-			Errors:  translate(errs),
-		})
+		return util.FailedResponse(http.StatusBadRequest, translate(errs))
 	}
 
 	return nil
@@ -59,13 +53,8 @@ func getTagMessage(e validator.FieldError) string {
 }
 
 func ValidateDokumen(req *request.Dokumen) error {
-	httpCode := http.StatusBadRequest
 	if req.IdJenisDokumen < 1 {
-		return echo.NewHTTPError(httpCode, util.Base{
-			Status:  httpCode,
-			Message: http.StatusText(httpCode),
-			Errors:  map[string]string{"message": "jenis dokumen wajib diisi"},
-		})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis dokumen wajib diisi"})
 	}
 
 	return nil
@@ -85,12 +74,7 @@ func ValidatePenulis(req *request.Penulis) error {
 		return nil
 	}
 
-	httpCode := http.StatusBadRequest
-	return echo.NewHTTPError(httpCode, util.Base{
-		Status:  httpCode,
-		Message: http.StatusText(httpCode),
-		Errors:  errs,
-	})
+	return util.FailedResponse(http.StatusBadRequest, errs)
 }
 
 func ValidateAnggota(req *request.AnggotaPengabdian) error {
@@ -105,10 +89,5 @@ func ValidateAnggota(req *request.AnggotaPengabdian) error {
 		return nil
 	}
 
-	httpCode := http.StatusBadRequest
-	return echo.NewHTTPError(httpCode, util.Base{
-		Status:  httpCode,
-		Message: http.StatusText(httpCode),
-		Errors:  errs,
-	})
+	return util.FailedResponse(http.StatusBadRequest, errs)
 }
