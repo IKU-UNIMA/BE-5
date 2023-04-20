@@ -11,7 +11,7 @@ func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		claims, err := util.ValidateJWT(c)
 		if err != nil {
-			return util.FailedResponse(c, http.StatusUnauthorized, map[string]string{"message": err.Error()})
+			return util.FailedResponse(http.StatusUnauthorized, map[string]string{"message": err.Error()})
 		}
 
 		c.Set("claims", claims)

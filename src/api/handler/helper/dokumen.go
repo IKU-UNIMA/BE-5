@@ -68,10 +68,10 @@ func InsertDokumen(param InsertDokumenParam) ([]string, error) {
 			if err != nil {
 				param.TX.Rollback()
 				if strings.Contains(err.Error(), "unsupported") {
-					return nil, util.FailedResponse(param.C, http.StatusBadRequest, map[string]string{"message": err.Error()})
+					return nil, util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 				}
 
-				return nil, util.FailedResponse(param.C, http.StatusInternalServerError, nil)
+				return nil, util.FailedResponse(http.StatusInternalServerError, nil)
 			}
 
 			idDokumen = append(idDokumen, dFile.Id)
@@ -100,10 +100,10 @@ func InsertDokumen(param InsertDokumenParam) ([]string, error) {
 			param.TX.Rollback()
 			DeleteBatchDokumen(idDokumen)
 			if strings.Contains(err.Error(), "jenis_dokumen") {
-				return nil, util.FailedResponse(param.C, http.StatusBadRequest, map[string]string{"message": "jenis dokumen tidak valid"})
+				return nil, util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis dokumen tidak valid"})
 			}
 
-			return nil, util.FailedResponse(param.C, http.StatusInternalServerError, nil)
+			return nil, util.FailedResponse(http.StatusInternalServerError, nil)
 		}
 	}
 
@@ -114,7 +114,7 @@ func EditDokumen(param EditDokumenParam) error {
 	req := &request.Dokumen{}
 	reqData := param.C.FormValue("data")
 	if err := json.Unmarshal([]byte(reqData), req); err != nil {
-		return util.FailedResponse(param.C, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	if err := validation.ValidateDokumen(req); err != nil {
@@ -128,10 +128,10 @@ func EditDokumen(param EditDokumenParam) error {
 		dFile, err := storage.CreateFile(file, getFolderId(param.Fitur))
 		if err != nil {
 			if strings.Contains(err.Error(), "unsupported") {
-				return util.FailedResponse(param.C, http.StatusBadRequest, map[string]string{"message": err.Error()})
+				return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 			}
 
-			return util.FailedResponse(param.C, http.StatusInternalServerError, nil)
+			return util.FailedResponse(http.StatusInternalServerError, nil)
 		}
 		dokumen = &DokumenModel{
 			IdJenisDokumen: req.IdJenisDokumen,
@@ -155,10 +155,10 @@ func EditDokumen(param EditDokumenParam) error {
 		if err := param.DB.WithContext(param.Ctx).Exec(updateDokumenQuery).Error; err != nil {
 			storage.DeleteFile(newId)
 			if strings.Contains(err.Error(), "jenis_dokumen") {
-				return util.FailedResponse(param.C, http.StatusBadRequest, map[string]string{"message": "jenis dokumen tidak valid"})
+				return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis dokumen tidak valid"})
 			}
 
-			return util.FailedResponse(param.C, http.StatusInternalServerError, nil)
+			return util.FailedResponse(http.StatusInternalServerError, nil)
 		}
 
 		storage.DeleteFile(param.Id)
@@ -171,10 +171,10 @@ func EditDokumen(param EditDokumenParam) error {
 
 		if err := param.DB.WithContext(param.Ctx).Table(fmt.Sprint("dokumen_", param.Fitur)).Where("id", param.Id).Updates(&dokumen).Error; err != nil {
 			if strings.Contains(err.Error(), "jenis_dokumen") {
-				return util.FailedResponse(param.C, http.StatusBadRequest, map[string]string{"message": "jenis dokumen tidak valid"})
+				return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis dokumen tidak valid"})
 			}
 
-			return util.FailedResponse(param.C, http.StatusInternalServerError, nil)
+			return util.FailedResponse(http.StatusInternalServerError, nil)
 		}
 	}
 

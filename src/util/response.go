@@ -24,8 +24,8 @@ func SuccessResponse(c echo.Context, httpCode int, data interface{}) error {
 	)
 }
 
-func FailedResponse(c echo.Context, httpCode int, errors map[string]string) error {
-	return c.JSON(
+func FailedResponse(httpCode int, errors map[string]string) error {
+	return echo.NewHTTPError(
 		httpCode,
 		Base{
 			Status:  httpCode,
