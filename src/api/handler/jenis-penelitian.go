@@ -15,7 +15,7 @@ func GetAllJenisPenelitianHandler(c echo.Context) error {
 	result := []response.JenisPenelitian{}
 
 	if err := db.WithContext(ctx).Find(&result).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, result)

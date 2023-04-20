@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type Base struct {
+type base struct {
 	Status  int               `json:"status"`
 	Message string            `json:"message"`
 	Errors  map[string]string `json:"errors"`
@@ -16,7 +16,7 @@ type Base struct {
 func SuccessResponse(c echo.Context, httpCode int, data interface{}) error {
 	return c.JSON(
 		httpCode,
-		Base{
+		base{
 			Status:  httpCode,
 			Message: http.StatusText(httpCode),
 			Data:    data,
@@ -24,10 +24,10 @@ func SuccessResponse(c echo.Context, httpCode int, data interface{}) error {
 	)
 }
 
-func FailedResponse(c echo.Context, httpCode int, errors map[string]string) error {
-	return c.JSON(
+func FailedResponse(httpCode int, errors map[string]string) error {
+	return echo.NewHTTPError(
 		httpCode,
-		Base{
+		base{
 			Status:  httpCode,
 			Message: http.StatusText(httpCode),
 			Errors:  errors,

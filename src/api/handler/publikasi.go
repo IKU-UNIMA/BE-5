@@ -28,7 +28,7 @@ type publikasiQueryParam struct {
 func GetAllPublikasiHandler(c echo.Context) error {
 	queryParams := &publikasiQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	claims := util.GetClaimsFromContext(c)
@@ -62,7 +62,7 @@ func GetAllPublikasiHandler(c echo.Context) error {
 		Preload("JenisPenelitian").Preload("Kategori").
 		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
 		Where(condition).Find(&data).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, util.Pagination{Page: queryParams.Page, Data: data})
@@ -71,7 +71,7 @@ func GetAllPublikasiHandler(c echo.Context) error {
 func GetPublikasiByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
@@ -79,7 +79,7 @@ func GetPublikasiByIdHandler(c echo.Context) error {
 	data := &response.DetailPublikasi{}
 
 	if !publikasiAuthorization(c, id, db, ctx) {
-		return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		return util.FailedResponse(http.StatusUnauthorized, nil)
 	}
 
 	if err := db.WithContext(ctx).Table("publikasi").
@@ -90,7 +90,7 @@ func GetPublikasiByIdHandler(c echo.Context) error {
 		Preload("PenulisMahasiswa", "jenis_penulis = 'mahasiswa'").
 		Preload("PenulisLain", "jenis_penulis = 'lain'").
 		Where("id", id).First(data).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, data)
@@ -100,7 +100,7 @@ func InsertPublikasiHandler(c echo.Context) error {
 	req := &request.Publikasi{}
 	reqData := c.FormValue("data")
 	if err := json.Unmarshal([]byte(reqData), req); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	if err := c.Validate(req); err != nil {
@@ -108,7 +108,7 @@ func InsertPublikasiHandler(c echo.Context) error {
 	}
 
 	if len(req.PenulisDosen) < 1 {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "penulis dosen tidak boleh kosong"})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "penulis dosen tidak boleh kosong"})
 	}
 
 	claims := util.GetClaimsFromContext(c)
@@ -119,7 +119,7 @@ func InsertPublikasiHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	publikasi, err := req.MapRequest()
 	if err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	publikasi.IdDosen = idDosen
@@ -190,19 +190,19 @@ func InsertPublikasiHandler(c echo.Context) error {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
-			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
+			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
 		}
 
 		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
+			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 		}
 
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		helper.DeleteBatchDokumen(idDokumen)
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusCreated, nil)
@@ -211,20 +211,20 @@ func InsertPublikasiHandler(c echo.Context) error {
 func EditPublikasiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 
 	if !publikasiAuthorization(c, id, db, ctx) {
-		return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		return util.FailedResponse(http.StatusUnauthorized, nil)
 	}
 
 	req := &request.Publikasi{}
 	reqData := c.FormValue("data")
 	if err := json.Unmarshal([]byte(reqData), req); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	if err := c.Validate(req); err != nil {
@@ -232,13 +232,13 @@ func EditPublikasiHandler(c echo.Context) error {
 	}
 
 	if len(req.PenulisDosen) < 1 {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "penulis dosen tidak boleh kosong"})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "penulis dosen tidak boleh kosong"})
 	}
 
 	tx := db.Begin()
 	publikasi, errMapping := req.MapRequest()
 	if errMapping != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
 	}
 
 	// edit publikasi
@@ -307,19 +307,19 @@ func EditPublikasiHandler(c echo.Context) error {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
-			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
+			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
 		}
 
 		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
+			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 		}
 
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		helper.DeleteBatchDokumen(idDokumen)
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -328,28 +328,28 @@ func EditPublikasiHandler(c echo.Context) error {
 func DeletePublikasiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
 	if err != "" {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
 	}
 
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 
 	if !publikasiAuthorization(c, id, db, ctx) {
-		return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		return util.FailedResponse(http.StatusUnauthorized, nil)
 	}
 
 	idDokumen := []string{}
 	if err := db.WithContext(ctx).Model(&model.DokumenPublikasi{}).Select("id").Where("id_publikasi", id).Find(&idDokumen).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	query := db.WithContext(ctx).Delete(new(model.Publikasi), id)
 	if query.Error != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if query.RowsAffected < 1 {
-		return util.FailedResponse(c, http.StatusNotFound, nil)
+		return util.FailedResponse(http.StatusNotFound, nil)
 	}
 
 	helper.DeleteBatchDokumen(idDokumen)
@@ -363,7 +363,7 @@ func GetAllKategoriPublikasiHandler(c echo.Context) error {
 	data := []response.JenisKategoriPublikasi{}
 
 	if err := db.WithContext(ctx).Preload("KategoriPublikasi").Find(&data).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, data)
@@ -378,24 +378,24 @@ func GetDokumenPublikasiByIdHandler(c echo.Context) error {
 	if err := db.WithContext(ctx).Model(new(model.DokumenPublikasi)).
 		Select("id_publikasi").First(&idPublikasi, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
-			return util.FailedResponse(c, http.StatusNotFound, nil)
+			return util.FailedResponse(http.StatusNotFound, nil)
 		}
 
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if !publikasiAuthorization(c, idPublikasi, db, ctx) {
-		return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		return util.FailedResponse(http.StatusUnauthorized, nil)
 	}
 
 	data := &response.DokumenPublikasi{}
 
 	if err := db.WithContext(ctx).Preload("JenisDokumen").First(data, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
-			return util.FailedResponse(c, http.StatusNotFound, nil)
+			return util.FailedResponse(http.StatusNotFound, nil)
 		}
 
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, data)
@@ -411,14 +411,14 @@ func EditDokumenPublikasiHandler(c echo.Context) error {
 	if err := db.WithContext(ctx).Model(new(model.DokumenPublikasi)).
 		Select("id_publikasi").First(&idPublikasi, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
-			return util.FailedResponse(c, http.StatusNotFound, nil)
+			return util.FailedResponse(http.StatusNotFound, nil)
 		}
 
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if !publikasiAuthorization(c, idPublikasi, db, ctx) {
-		return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		return util.FailedResponse(http.StatusUnauthorized, nil)
 	}
 
 	return helper.EditDokumen(helper.EditDokumenParam{
@@ -439,34 +439,34 @@ func DeleteDokumenPublikasiHandler(c echo.Context) error {
 	if err := db.WithContext(ctx).Model(new(model.DokumenPublikasi)).
 		Select("id_publikasi").First(&idPublikasi, "id", id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
-			return util.FailedResponse(c, http.StatusNotFound, nil)
+			return util.FailedResponse(http.StatusNotFound, nil)
 		}
 
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if !publikasiAuthorization(c, idPublikasi, db, ctx) {
-		return util.FailedResponse(c, http.StatusUnauthorized, nil)
+		return util.FailedResponse(http.StatusUnauthorized, nil)
 	}
 
 	tx := db.Begin()
 
 	query := tx.WithContext(ctx).Delete(new(model.DokumenPublikasi), "id", id)
 	if query.Error != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if query.RowsAffected < 1 {
-		return util.FailedResponse(c, http.StatusNotFound, nil)
+		return util.FailedResponse(http.StatusNotFound, nil)
 	}
 
 	if err := storage.DeleteFile(id); err != nil {
 		tx.Rollback()
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, nil)
@@ -492,20 +492,20 @@ func publikasiAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Con
 // checkPublikasiError used to check the error while inserting or updating publikasi
 func checkPublikasiError(c echo.Context, err error) error {
 	if strings.Contains(err.Error(), "id_dosen") {
-		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
 	}
 
 	if strings.Contains(err.Error(), "id_kategori_capaian") {
-		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "kategori capaian tidak ditemukan"})
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "kategori capaian tidak ditemukan"})
 	}
 
 	if strings.Contains(err.Error(), "id_kategori") {
-		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
 	}
 
 	if strings.Contains(err.Error(), "id_jenis_penelitian") {
-		return util.FailedResponse(c, http.StatusNotFound, map[string]string{"message": "jenis penelitian tidak ditemukan"})
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "jenis penelitian tidak ditemukan"})
 	}
 
-	return util.FailedResponse(c, http.StatusInternalServerError, nil)
+	return util.FailedResponse(http.StatusInternalServerError, nil)
 }

@@ -23,7 +23,7 @@ type dashboardQueryParam struct {
 func GetDashboardHandler(c echo.Context) error {
 	pathParams := &dashboardPathParam{}
 	if err := (&echo.DefaultBinder{}).BindPathParams(c, pathParams); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	if err := checkDashboardFitur(c, pathParams.Fitur); err != nil {
@@ -43,7 +43,7 @@ func GetDashboardHandler(c echo.Context) error {
 	)
 
 	if err := db.WithContext(ctx).Raw(query).Find(&data).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, data)
@@ -52,7 +52,7 @@ func GetDashboardHandler(c echo.Context) error {
 func GetDetailDashboardHandler(c echo.Context) error {
 	pathParams := &dashboardPathParam{}
 	if err := (&echo.DefaultBinder{}).BindPathParams(c, pathParams); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	if err := checkDashboardFitur(c, pathParams.Fitur); err != nil {
@@ -61,7 +61,7 @@ func GetDetailDashboardHandler(c echo.Context) error {
 
 	queryParams := &dashboardQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
-		return util.FailedResponse(c, http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
 	db := database.InitMySQL()
@@ -87,7 +87,7 @@ func GetDetailDashboardHandler(c echo.Context) error {
 	)
 
 	if err := db.WithContext(ctx).Raw(query).Find(&data).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, data)
@@ -116,17 +116,17 @@ func GetDashboardTotalHandler(c echo.Context) error {
 
 	// get total publikasi
 	if err := db.WithContext(ctx).Raw(publikasiQuery).Find(data).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	// get total paten
 	if err := db.WithContext(ctx).Raw(patenQuery).Find(data).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	// get total pengabdian
 	if err := db.WithContext(ctx).Raw(pengabdianQuery).Find(data).Error; err != nil {
-		return util.FailedResponse(c, http.StatusInternalServerError, nil)
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	return util.SuccessResponse(c, http.StatusOK, data)
@@ -141,12 +141,7 @@ func checkDashboardFitur(c echo.Context, fitur string) error {
 	case "pengabdian":
 		break
 	default:
-		httpCode := http.StatusBadRequest
-		return echo.NewHTTPError(httpCode, util.Base{
-			Status:  httpCode,
-			Message: http.StatusText(httpCode),
-			Errors:  map[string]string{"message": "fitur tidak didukung"},
-		})
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "fitur tidak didukung"})
 	}
 
 	return nil
