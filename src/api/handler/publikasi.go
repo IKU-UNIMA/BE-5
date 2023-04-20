@@ -78,7 +78,7 @@ func GetPublikasiByIdHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	data := &response.DetailPublikasi{}
 
-	if !publikasiAuthorization(c, id, db, ctx) {
+	if err := publikasiAuthorization(c, id, db, ctx); err != nil {
 		return util.FailedResponse(http.StatusUnauthorized, nil)
 	}
 
@@ -217,8 +217,8 @@ func EditPublikasiHandler(c echo.Context) error {
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 
-	if !publikasiAuthorization(c, id, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := publikasiAuthorization(c, id, db, ctx); err != nil {
+		return err
 	}
 
 	req := &request.Publikasi{}
@@ -334,8 +334,8 @@ func DeletePublikasiHandler(c echo.Context) error {
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 
-	if !publikasiAuthorization(c, id, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := publikasiAuthorization(c, id, db, ctx); err != nil {
+		return err
 	}
 
 	idDokumen := []string{}
@@ -384,7 +384,7 @@ func GetDokumenPublikasiByIdHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
-	if !publikasiAuthorization(c, idPublikasi, db, ctx) {
+	if err := publikasiAuthorization(c, idPublikasi, db, ctx); err != nil {
 		return util.FailedResponse(http.StatusUnauthorized, nil)
 	}
 
@@ -417,8 +417,8 @@ func EditDokumenPublikasiHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
-	if !publikasiAuthorization(c, idPublikasi, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := publikasiAuthorization(c, idPublikasi, db, ctx); err != nil {
+		return err
 	}
 
 	return helper.EditDokumen(helper.EditDokumenParam{
@@ -445,8 +445,8 @@ func DeleteDokumenPublikasiHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
-	if !publikasiAuthorization(c, idPublikasi, db, ctx) {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+	if err := publikasiAuthorization(c, idPublikasi, db, ctx); err != nil {
+		return err
 	}
 
 	tx := db.Begin()
@@ -472,21 +472,30 @@ func DeleteDokumenPublikasiHandler(c echo.Context) error {
 	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
-func publikasiAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Context) bool {
+func publikasiAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Context) error {
 	claims := util.GetClaimsFromContext(c)
 	role := claims["role"].(string)
 	idDosen := int(claims["id"].(float64))
 	if role == string(util.ADMIN) {
-		return claims["bagian"].(string) == util.IKU5
+		return nil
 	}
 
 	result := 0
-	if err := db.WithContext(ctx).Table("publikasi").Select("id_dosen").
-		Where("id", id).Scan(&result).Error; err != nil {
-		return false
+	query := db.WithContext(ctx).Table("publikasi").Select("id_dosen").
+		Where("id", id).Scan(&result)
+	if query.Error != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
-	return result == idDosen
+	if query.RowsAffected < 1 {
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "data pengabdian tidak ditemukan"})
+	}
+
+	if result == idDosen {
+		return nil
+	}
+
+	return util.FailedResponse(http.StatusUnauthorized, nil)
 }
 
 // checkPublikasiError used to check the error while inserting or updating publikasi
