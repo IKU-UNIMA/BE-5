@@ -5,6 +5,7 @@ type (
 		ID               int            `json:"id"`
 		IdDosen          int            `json:"-"`
 		Dosen            DosenReference `gorm:"foreignKey:IdDosen" json:"dosen"`
+		Judul            string         `json:"judul_kegiatan"`
 		TahunPelaksanaan string         `json:"tahun_pelaksanaan"`
 		LamaKegiatan     uint           `json:"lama_kegiatan"`
 	}
