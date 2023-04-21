@@ -22,4 +22,11 @@ type (
 		TotalPaten      int `json:"total_paten"`
 		TotalPengabdian int `json:"total_pengabdian"`
 	}
+
+	DashboardUmum struct {
+		Fakultas  int `json:"fakultas"`
+		Prodi     int `json:"prodi"`
+		Dosen     int `json:"dosen"`
+		Mahasiswa int `json:"mahasiswa"`
+	}
 )
