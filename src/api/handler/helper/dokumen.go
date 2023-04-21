@@ -50,7 +50,7 @@ func InsertDokumen(param InsertDokumenParam) ([]string, error) {
 	query := ""
 	req := param.Data
 	form, _ := param.C.MultipartForm()
-	files := form.File["files"]
+	files := form.File["files[]"]
 	idDokumen := []string{}
 	if files != nil && req != nil {
 		query = fmt.Sprintf(`INSERT dokumen_%s
