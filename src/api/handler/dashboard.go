@@ -132,6 +132,34 @@ func GetDashboardTotalHandler(c echo.Context) error {
 	return util.SuccessResponse(c, http.StatusOK, data)
 }
 
+func GetDashboardUmum(c echo.Context) error {
+	db := database.InitMySQL()
+	ctx := c.Request().Context()
+	data := &response.DashboardUmum{}
+	fakultasQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
+	prodiQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
+	dosenQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
+	mahasiswaQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
+
+	if err := db.WithContext(ctx).Raw(fakultasQuery).Find(data).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	if err := db.WithContext(ctx).Raw(prodiQuery).Find(data).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	if err := db.WithContext(ctx).Raw(dosenQuery).Find(data).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	if err := db.WithContext(ctx).Raw(mahasiswaQuery).Find(data).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	return util.SuccessResponse(c, http.StatusOK, data)
+}
+
 func checkDashboardFitur(c echo.Context, fitur string) error {
 	switch fitur {
 	case "publikasi":
