@@ -41,6 +41,7 @@ type (
 		KategoriCapaian     KategoriCapaian    `gorm:"foreignKey:IdKategoriCapaian"`
 		Dokumen             []DokumenPublikasi `gorm:"foreignKey:IdPublikasi;constraint:OnDelete:CASCADE"`
 		Penulis             []PenulisPublikasi `gorm:"foreignKey:IdPublikasi;constraint:OnDelete:CASCADE"`
+		CreatedAt           time.Time
 	}
 
 	KategoriPublikasi struct {
