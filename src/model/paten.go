@@ -23,6 +23,7 @@ type (
 		KategoriCapaian   KategoriCapaian `gorm:"foreignKey:IdKategoriCapaian"`
 		Penulis           []PenulisPaten  `gorm:"foreignKey:IdPaten;constraint:OnDelete:CASCADE"`
 		Dokumen           []DokumenPaten  `gorm:"foreignKey:IdPaten;constraint:OnDelete:CASCADE"`
+		CreatedAt         time.Time
 	}
 
 	KategoriPaten struct {
