@@ -24,11 +24,14 @@ type (
 		LamaKegiatan            uint                `json:"lama_kegiatan"`
 		Judul                   string              `json:"judul_kegiatan"`
 		LokasiKegiatan          string              `json:"lokasi_kegiatan"`
+		TahunUsulan             uint                `json:"tahun_usulan"`
+		TahunPelaksanaan        uint                `json:"tahun_pelaksanaan"`
 		TahunPelaksanaanKe      uint                `json:"tahun_pelaksanaan_ke"`
 		DanaDariDikti           float64             `json:"dana_dari_dikti"`
 		DanaDariPerguruanTinggi float64             `json:"dana_dari_perguruan_tinggi"`
 		DanaDariInstitusiLain   float64             `json:"dana_dari_institusi_lain"`
 		InKind                  string              `json:"in_kind"`
+		MitraLitabmas           string              `json:"mitra_litabmas"`
 		AnggotaDosen            []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian" json:"anggota_dosen"`
 		AnggotaMahasiswa        []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian" json:"anggota_mahasiswa"`
 		AnggotaEksternal        []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian" json:"anggota_eksternal"`
