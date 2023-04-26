@@ -12,8 +12,6 @@ import (
 
 const JWT_ERROR = "login to process"
 
-var secret = env.GetSecretJWTEnv()
-
 func GenerateJWT(id int, nama, role, bagian string) string {
 	claims := jwt.MapClaims{
 		"id":         id,
@@ -24,7 +22,7 @@ func GenerateJWT(id int, nama, role, bagian string) string {
 	}
 
 	rawToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token, _ := rawToken.SignedString([]byte(secret))
+	token, _ := rawToken.SignedString([]byte(env.GetSecretJWTEnv()))
 	return token
 }
 
@@ -46,7 +44,7 @@ func ValidateJWT(c echo.Context) (interface{}, error) {
 	}
 
 	token, _ := jwt.Parse(strToken[1], func(t *jwt.Token) (interface{}, error) {
-		return []byte(secret), nil
+		return []byte(env.GetSecretJWTEnv()), nil
 	})
 
 	if _, ok := token.Claims.(jwt.MapClaims); !ok && !token.Valid {
