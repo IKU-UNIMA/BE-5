@@ -301,6 +301,12 @@ func EditPatenHandler(c echo.Context) error {
 		penulis = append(penulis, *v.MapRequestToPaten(id, "lain"))
 	}
 
+	// delete old penulis
+	if err := tx.WithContext(ctx).Delete(new(model.PenulisPaten), "id_paten", id).Error; err != nil {
+		tx.Rollback()
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
 	// insert penulis
 	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
 		tx.Rollback()
