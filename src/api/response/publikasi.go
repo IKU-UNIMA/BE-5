@@ -1,5 +1,11 @@
 package response
 
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
+
 type (
 	Publikasi struct {
 		ID                int               `json:"id"`
@@ -9,6 +15,7 @@ type (
 		IdJenisPenelitian int               `json:"-"`
 		Judul             string            `json:"judul"`
 		TanggalTerbit     string            `json:"tanggal_terbit"`
+		WaktuPelaksanaan  string            `json:"-"`
 		Kategori          KategoriPublikasi `gorm:"foreignKey:IdKategori" json:"kategori_kegiatan"`
 		JenisPenelitian   JenisPenelitian   `gorm:"foreignKey:IdJenisPenelitian" json:"jenis"`
 	}
@@ -89,3 +96,24 @@ type (
 		JenisDokumen   JenisDokumen `gorm:"foreignKey:IdJenisDokumen" json:"jenis_dokumen"`
 	}
 )
+
+func (p *Publikasi) AfterFind(tx *gorm.DB) (err error) {
+	if p.TanggalTerbit == "" {
+		p.TanggalTerbit = p.WaktuPelaksanaan
+	}
+
+	p.TanggalTerbit = strings.Split(p.TanggalTerbit, "T")[0]
+
+	return
+}
+
+func (dp *DetailPublikasi) AfterFind(tx *gorm.DB) (err error) {
+	dp.TanggalTerbit = strings.Split(dp.TanggalTerbit, "T")[0]
+	dp.WaktuPelaksanaan = strings.Split(dp.WaktuPelaksanaan, "T")[0]
+	return
+}
+
+func (dp *DokumenPublikasi) AfterFind(tx *gorm.DB) (err error) {
+	dp.TanggalUpload = strings.Split(dp.TanggalUpload, "T")[0]
+	return
+}
