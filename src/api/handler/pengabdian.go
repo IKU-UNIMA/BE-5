@@ -54,11 +54,11 @@ func GetAllPengabdianHandler(c echo.Context) error {
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
 	limit := 20
-	data := []model.Pengabdian{}
+	data := []response.Pengabdian{}
 
 	if err := db.WithContext(ctx).
 		Preload("Dosen").
-		Select("id", "id_dosen", "tahun_pelaksanaan", "lama_kegiatan").
+		Select("id", "id_dosen", "judul", "tahun_pelaksanaan", "lama_kegiatan").
 		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
 		Where(condition).Order("created_at DESC").Find(&data).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
@@ -66,7 +66,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 
 	return util.SuccessResponse(c, http.StatusOK, util.Pagination{
 		Page: queryParams.Page,
-		Data: model.MapBatchPengabdianResponse(data),
+		Data: data,
 	})
 }
 
@@ -81,7 +81,7 @@ func GetPengabdianByIdHandler(c echo.Context) error {
 	data := &response.DetailPengabdian{}
 
 	if err := pengabdianAuthorization(c, id, db, ctx); err != nil {
-		return nil
+		return err
 	}
 
 	if err := db.WithContext(ctx).Table("pengabdian").
@@ -92,8 +92,6 @@ func GetPengabdianByIdHandler(c echo.Context) error {
 		Preload("AnggotaEksternal", "jenis_anggota='eksternal'").First(&data, id).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
-
-	data.TglSkPenugasan = strings.Split(data.TglSkPenugasan, "T")[0]
 
 	return util.SuccessResponse(c, http.StatusOK, data)
 }

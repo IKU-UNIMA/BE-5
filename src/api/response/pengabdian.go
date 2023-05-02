@@ -1,5 +1,13 @@
 package response
 
+import (
+	"fmt"
+	"strconv"
+	"strings"
+
+	"gorm.io/gorm"
+)
+
 type (
 	Pengabdian struct {
 		ID               int            `json:"id"`
@@ -71,3 +79,19 @@ type (
 		JenisDokumen   JenisDokumen `gorm:"foreignKey:IdJenisDokumen" json:"jenis_dokumen"`
 	}
 )
+
+func (p *Pengabdian) AfterFind(tx *gorm.DB) (err error) {
+	tahunPelaksanaan, _ := strconv.ParseUint(p.TahunPelaksanaan, 10, 32)
+	p.TahunPelaksanaan = fmt.Sprintf("%d/%d", tahunPelaksanaan, uint(tahunPelaksanaan)+p.LamaKegiatan)
+	return
+}
+
+func (dp *DetailPengabdian) AfterFind(tx *gorm.DB) (err error) {
+	dp.TglSkPenugasan = strings.Split(dp.TglSkPenugasan, "T")[0]
+	return
+}
+
+func (dp *DokumenPengabdian) AfterFind(tx *gorm.DB) (err error) {
+	dp.TanggalUpload = strings.Split(dp.TanggalUpload, "T")[0]
+	return
+}

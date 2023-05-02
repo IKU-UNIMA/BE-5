@@ -1,8 +1,6 @@
 package model
 
 import (
-	"be-5/src/api/response"
-	"fmt"
 	"time"
 )
 
@@ -69,32 +67,3 @@ type (
 		JenisDokumen   JenisDokumen `gorm:"foreignKey:IdJenisDokumen"`
 	}
 )
-
-func (p *Pengabdian) MapToResponse() *response.Pengabdian {
-	tahunPelaksanaan := fmt.Sprintf("%d/%d", p.TahunPelaksanaan, p.TahunPelaksanaan+p.LamaKegiatan)
-	return &response.Pengabdian{
-		ID:               p.ID,
-		TahunPelaksanaan: tahunPelaksanaan,
-		LamaKegiatan:     p.LamaKegiatan,
-		Dosen: response.DosenReference{
-			ID:   p.Dosen.ID,
-			Nama: p.Dosen.Nama,
-			Nidn: p.Dosen.Nidn,
-			Nip:  p.Dosen.Nip,
-		},
-	}
-}
-
-func MapBatchPengabdianResponse(p []Pengabdian) []response.Pengabdian {
-	res := []response.Pengabdian{}
-	if len(p) < 2 && len(p) != 0 {
-		res = append(res, *p[0].MapToResponse())
-	} else {
-		for i := 0; i < len(p)/2; i++ {
-			res = append(res, *p[i].MapToResponse())
-			res = append(res, *p[len(p)-1-i].MapToResponse())
-		}
-	}
-
-	return res
-}
