@@ -81,7 +81,7 @@ func GetPengabdianByIdHandler(c echo.Context) error {
 	data := &response.DetailPengabdian{}
 
 	if err := pengabdianAuthorization(c, id, db, ctx); err != nil {
-		return nil
+		return err
 	}
 
 	if err := db.WithContext(ctx).Table("pengabdian").
