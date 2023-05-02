@@ -79,7 +79,7 @@ func GetPublikasiByIdHandler(c echo.Context) error {
 	data := &response.DetailPublikasi{}
 
 	if err := publikasiAuthorization(c, id, db, ctx); err != nil {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+		return err
 	}
 
 	if err := db.WithContext(ctx).Table("publikasi").
@@ -391,7 +391,7 @@ func GetDokumenPublikasiByIdHandler(c echo.Context) error {
 	}
 
 	if err := publikasiAuthorization(c, idPublikasi, db, ctx); err != nil {
-		return util.FailedResponse(http.StatusUnauthorized, nil)
+		return err
 	}
 
 	data := &response.DokumenPublikasi{}
@@ -494,7 +494,7 @@ func publikasiAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Con
 	}
 
 	if query.RowsAffected < 1 {
-		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "data pengabdian tidak ditemukan"})
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "data publikasi tidak ditemukan"})
 	}
 
 	if result == idDosen {
