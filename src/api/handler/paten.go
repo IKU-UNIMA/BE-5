@@ -390,7 +390,7 @@ func GetDokumenPatenByIdHandler(c echo.Context) error {
 	}
 
 	if err := patenAuthorization(c, idPaten, db, ctx); err != nil {
-		return nil
+		return err
 	}
 
 	data := &response.DokumenPaten{}

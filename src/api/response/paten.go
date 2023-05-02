@@ -1,5 +1,11 @@
 package response
 
+import (
+	"strings"
+
+	"gorm.io/gorm"
+)
+
 type (
 	Paten struct {
 		ID                int             `json:"id"`
@@ -71,3 +77,18 @@ type (
 		JenisDokumen   JenisDokumen `gorm:"foreignKey:IdJenisDokumen" json:"jenis_dokumen"`
 	}
 )
+
+func (p *Paten) AfterFind(tx *gorm.DB) (err error) {
+	p.Tanggal = strings.Split(p.Tanggal, "T")[0]
+	return
+}
+
+func (dp *DetailPaten) AfterFind(tx *gorm.DB) (err error) {
+	dp.Tanggal = strings.Split(dp.Tanggal, "T")[0]
+	return
+}
+
+func (dp *DokumenPaten) AfterFind(tx *gorm.DB) (err error) {
+	dp.TanggalUpload = strings.Split(dp.TanggalUpload, "T")[0]
+	return
+}
