@@ -64,9 +64,17 @@ func GetAllDosenHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
+	var totalResult int64
+	if err := db.WithContext(ctx).Table("dosen").Count(&totalResult).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
 	return util.SuccessResponse(c, http.StatusOK, util.Pagination{
-		Page: queryParams.Page,
-		Data: result,
+		Limit:       limit,
+		Page:        queryParams.Page,
+		TotalPage:   util.CountTotalPage(int(totalResult), limit),
+		TotalResult: int(totalResult),
+		Data:        result,
 	})
 }
 
