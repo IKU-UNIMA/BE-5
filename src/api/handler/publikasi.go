@@ -40,7 +40,7 @@ func GetAllPublikasiHandler(c echo.Context) error {
 		condition = fmt.Sprintf("id_dosen = %d", idDosen)
 	} else {
 		if queryParams.Tahun != 0 {
-			condition = fmt.Sprintf(`YEAR("tanggal_terbit") = %d OR YEAR("waktu_pelaksanaan") = %d`,
+			condition = fmt.Sprintf(`YEAR(tanggal_terbit) = %d OR YEAR(waktu_pelaksanaan) = %d`,
 				queryParams.Tahun, queryParams.Tahun)
 		}
 
