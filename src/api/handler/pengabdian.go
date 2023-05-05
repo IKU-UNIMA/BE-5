@@ -40,7 +40,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 		condition = fmt.Sprintf("id_dosen = %d", idDosen)
 	} else {
 		if queryParams.Tahun != 0 {
-			condition = fmt.Sprintf("tahun_kegiatan = %d", queryParams.Tahun)
+			condition = fmt.Sprintf("tahun_pelaksanaan = %d", queryParams.Tahun)
 		}
 		if queryParams.Judul != "" {
 			if condition != "" {
