@@ -21,7 +21,7 @@ import (
 
 type patenQueryParam struct {
 	Tahun int    `query:"tahun"`
-	Nama  string `query:"nama"`
+	Judul string `query:"judul"`
 	Page  int    `query:"page"`
 }
 
@@ -43,11 +43,11 @@ func GetAllPatenHandler(c echo.Context) error {
 			condition = fmt.Sprintf(`YEAR("tanggal") = %d`, queryParams.Tahun)
 		}
 
-		if queryParams.Nama != "" {
+		if queryParams.Judul != "" {
 			if condition != "" {
-				condition += " AND UPPER(nama) LIKE '%" + strings.ToUpper(queryParams.Nama) + "%'"
+				condition += " AND UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
 			} else {
-				condition = "UPPER(nama) LIKE '%" + strings.ToUpper(queryParams.Nama) + "%'"
+				condition = "UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
 			}
 		}
 	}
