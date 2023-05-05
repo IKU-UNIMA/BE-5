@@ -18,9 +18,8 @@ type (
 	}
 
 	DashboardTotal struct {
-		TotalPublikasi  int `json:"total_publikasi"`
-		TotalPaten      int `json:"total_paten"`
-		TotalPengabdian int `json:"total_pengabdian"`
+		Nama  string `json:"nama"`
+		Total int    `json:"total"`
 	}
 
 	DashboardUmum struct {

@@ -90,10 +90,10 @@ func GetDashboardTotalHandler(c echo.Context) error {
 	tahun := c.QueryParam("tahun")
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
-	data := &response.DashboardTotal{}
-	publikasiQuery := "SELECT COUNT(id) AS total_publikasi FROM publikasi"
-	patenQuery := "SELECT COUNT(id) AS total_paten FROM paten"
-	pengabdianQuery := "SELECT COUNT(id) AS total_pengabdian FROM pengabdian"
+	data := []response.DashboardTotal{}
+	publikasiQuery := "SELECT COUNT(id) AS total FROM publikasi"
+	patenQuery := "SELECT COUNT(id) AS total FROM paten"
+	pengabdianQuery := "SELECT COUNT(id) AS total FROM pengabdian"
 
 	if tahun != "" {
 		publikasiQuery += fmt.Sprintf(" WHERE YEAR(tanggal_terbit) = %s OR YEAR(waktu_pelaksanaan) = %s", tahun, tahun)
@@ -101,20 +101,36 @@ func GetDashboardTotalHandler(c echo.Context) error {
 		pengabdianQuery += fmt.Sprintf(" WHERE tahun_pelaksanaan = %s", tahun)
 	}
 
+	total := 0
 	// get total publikasi
-	if err := db.WithContext(ctx).Raw(publikasiQuery).Find(data).Error; err != nil {
+	if err := db.WithContext(ctx).Raw(publikasiQuery).Find(&total).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
+
+	data = append(data, response.DashboardTotal{
+		Nama:  "publikasi",
+		Total: total,
+	})
 
 	// get total paten
-	if err := db.WithContext(ctx).Raw(patenQuery).Find(data).Error; err != nil {
+	if err := db.WithContext(ctx).Raw(patenQuery).Find(&total).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
+	data = append(data, response.DashboardTotal{
+		Nama:  "paten",
+		Total: total,
+	})
+
 	// get total pengabdian
-	if err := db.WithContext(ctx).Raw(pengabdianQuery).Find(data).Error; err != nil {
+	if err := db.WithContext(ctx).Raw(pengabdianQuery).Find(&total).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
+
+	data = append(data, response.DashboardTotal{
+		Nama:  "pengabdian",
+		Total: total,
+	})
 
 	return util.SuccessResponse(c, http.StatusOK, data)
 }
