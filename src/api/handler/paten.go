@@ -40,7 +40,7 @@ func GetAllPatenHandler(c echo.Context) error {
 		condition = fmt.Sprintf("id_dosen = %d", idDosen)
 	} else {
 		if queryParams.Tahun != 0 {
-			condition = fmt.Sprintf(`YEAR("tanggal") = %d`, queryParams.Tahun)
+			condition = fmt.Sprintf(`YEAR(tanggal) = %d`, queryParams.Tahun)
 		}
 
 		if queryParams.Judul != "" {
