@@ -17,7 +17,7 @@ type dashboardQueryParam struct {
 
 func GetDashboardHandler(c echo.Context) error {
 	queryParams := &dashboardQueryParam{}
-	if err := (&echo.DefaultBinder{}).BindPathParams(c, queryParams); err != nil {
+	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
