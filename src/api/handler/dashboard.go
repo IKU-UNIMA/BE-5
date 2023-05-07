@@ -6,6 +6,7 @@ import (
 	"be-5/src/util"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -63,7 +64,13 @@ func GetDetailDashboardHandler(c echo.Context) error {
 	condition := createTahunCondition(fitur, queryParams.Tahun)
 	if queryParams.Fakultas > 0 {
 		if condition != "" {
-			condition += fmt.Sprintf(" AND dosen.id_fakultas = %d", queryParams.Fakultas)
+			if fitur == "publikasi" {
+				fakultas := fmt.Sprintf(" AND dosen.id_fakultas = %d", queryParams.Fakultas)
+				splitTahun := strings.Split(condition, " OR ")
+				condition = splitTahun[0] + fakultas + " OR " + splitTahun[1] + fakultas
+			} else {
+				condition += fmt.Sprintf(" AND dosen.id_fakultas = %d", queryParams.Fakultas)
+			}
 		} else {
 			condition = fmt.Sprintf("WHERE dosen.id_fakultas = %d", queryParams.Fakultas)
 		}
