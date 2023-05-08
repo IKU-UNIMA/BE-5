@@ -147,9 +147,9 @@ func GetDashboardUmum(c echo.Context) error {
 	ctx := c.Request().Context()
 	data := &response.DashboardUmum{}
 	fakultasQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
-	prodiQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
-	dosenQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
-	mahasiswaQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
+	prodiQuery := `SELECT COUNT(id) AS prodi FROM prodi`
+	dosenQuery := `SELECT COUNT(id) AS dosen FROM dosen`
+	mahasiswaQuery := `SELECT COUNT(id) AS mahasiswa FROM mahasiswa`
 
 	if err := db.WithContext(ctx).Raw(fakultasQuery).Find(data).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
