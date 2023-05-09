@@ -108,9 +108,9 @@ func GetDashboardHandler(c echo.Context) error {
 	data.Total = total
 	data.TotalDosen = totalDosen
 
-	var pencapaian float32
+	var pencapaian float64
 	if totalDosen != 0 {
-		pencapaian = (float32(total) / float32(totalDosen)) * 100
+		pencapaian = util.RoundFloat((float64(total) / float64(totalDosen)) * 100)
 	}
 
 	data.Pencapaian = fmt.Sprintf("%.2f", pencapaian) + "%"
