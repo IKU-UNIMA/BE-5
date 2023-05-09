@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"be-5/src/api/request"
 	"be-5/src/api/response"
 	"be-5/src/config/database"
 	"be-5/src/util"
@@ -12,8 +13,7 @@ import (
 )
 
 type dashboardQueryParam struct {
-	Tahun    int `query:"tahun"`
-	Fakultas int `query:"fakultas"`
+	Tahun int `query:"tahun"`
 }
 
 func GetDashboardHandler(c echo.Context) error {
@@ -22,73 +22,212 @@ func GetDashboardHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
-	fitur := c.Param("fitur")
-	if err := checkDashboardFitur(c, fitur); err != nil {
-		return err
-	}
-
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
-	data := []response.Dashboard{}
-	condition := createTahunCondition(fitur, queryParams.Tahun)
-	query := fmt.Sprintf(
-		`SELECT fakultas.id, fakultas.nama, COUNT(*) AS jumlah FROM %s
-			JOIN dosen ON dosen.id = %s.id_dosen
-			JOIN fakultas ON fakultas.id = dosen.id_fakultas 
-			%s GROUP BY fakultas.id ORDER BY jumlah DESC;`,
-		fitur, fitur, condition,
-	)
+	data := &response.Dashboard{}
 
-	if err := db.WithContext(ctx).Raw(query).Find(&data).Error; err != nil {
+	dosen := []struct {
+		ID       int
+		Fakultas string
+		Jumlah   int
+	}{}
+	dosenQuery := `
+	SELECT fakultas.id, fakultas.nama AS fakultas, COUNT(dosen.id) AS jumlah FROM fakultas
+	left JOIN dosen ON dosen.id_fakultas = fakultas.id
+	GROUP BY fakultas.id ORDER BY fakultas.id
+	`
+	if err := db.WithContext(ctx).Raw(dosenQuery).Find(&dosen).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
+
+	var target float64
+	targetQuery := `
+	SELECT target FROM target
+	WHERE bagian = 'IKU 5'
+	`
+	if err := db.WithContext(ctx).Raw(targetQuery).Find(&target).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	data.Target = fmt.Sprintf("%.1f", util.RoundFloat(target))
+
+	query := func(fitur string) string {
+		condition := createTahunCondition(fitur, queryParams.Tahun)
+		if fitur == "publikasi" && condition != "" {
+			splitTahun := strings.Split(condition, " OR ")
+			condition = splitTahun[0] + " OR " + "publikasi.id_dosen = dosen.id AND " + splitTahun[1]
+		}
+
+		return fmt.Sprintf(
+			`SELECT COUNT(%s.id) FROM fakultas
+			LEFT JOIN dosen ON dosen.id_fakultas = fakultas.id
+			LEFT JOIN %s ON %s.id_dosen = dosen.id %s
+			GROUP BY fakultas.id ORDER BY fakultas.id;`,
+			fitur, fitur, fitur, condition,
+		)
+	}
+
+	// get publikasi data
+	publikasi := []int{}
+	if err := db.WithContext(ctx).Raw(query("publikasi")).Find(&publikasi).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	// get paten data
+	paten := []int{}
+	if err := db.WithContext(ctx).Raw(query("paten")).Find(&paten).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	// get pengabdian data
+	pengabdian := []int{}
+	if err := db.WithContext(ctx).Raw(query("pengabdian")).Find(&pengabdian).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	totalDosen := 0
+	total := 0
+	for i := 0; i < len(publikasi); i++ {
+		jumlah := publikasi[i]
+		jumlah += paten[i]
+		jumlah += pengabdian[i]
+
+		var persentase float64
+		if dosen[i].Jumlah != 0 {
+			persentase = util.RoundFloat((float64(jumlah) / float64(dosen[i].Jumlah)) * 100)
+		}
+
+		data.Detail = append(data.Detail, response.DashboardDetailPerFakultas{
+			ID:          dosen[i].ID,
+			Fakultas:    dosen[i].Fakultas,
+			JumlahDosen: dosen[i].Jumlah,
+			Jumlah:      jumlah,
+			Persentase:  fmt.Sprintf("%.2f", persentase) + "%",
+		})
+
+		totalDosen += dosen[i].Jumlah
+		total += jumlah
+	}
+
+	data.Total = total
+	data.TotalDosen = totalDosen
+
+	var pencapaian float64
+	if totalDosen != 0 {
+		pencapaian = util.RoundFloat((float64(total) / float64(totalDosen)) * 100)
+	}
+
+	data.Pencapaian = fmt.Sprintf("%.2f", pencapaian) + "%"
 
 	return util.SuccessResponse(c, http.StatusOK, data)
 }
 
-func GetDetailDashboardHandler(c echo.Context) error {
-	fitur := c.Param("fitur")
-
-	if err := checkDashboardFitur(c, fitur); err != nil {
-		return err
-	}
-
+func GetDashboardByFakultasHandler(c echo.Context) error {
 	queryParams := &dashboardQueryParam{}
 	if err := (&echo.DefaultBinder{}).BindQueryParams(c, queryParams); err != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
+	fakultas, err := util.GetId(c)
+	if err != "" {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	}
+
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
-	data := []response.DetailDashboard{}
-	condition := createTahunCondition(fitur, queryParams.Tahun)
-	if queryParams.Fakultas > 0 {
-		if condition != "" {
-			if fitur == "publikasi" {
-				fakultas := fmt.Sprintf(" AND dosen.id_fakultas = %d", queryParams.Fakultas)
-				splitTahun := strings.Split(condition, " OR ")
-				condition = splitTahun[0] + fakultas + " OR " + splitTahun[1] + fakultas
-			} else {
-				condition += fmt.Sprintf(" AND dosen.id_fakultas = %d", queryParams.Fakultas)
-			}
-		} else {
-			condition = fmt.Sprintf("WHERE dosen.id_fakultas = %d", queryParams.Fakultas)
-		}
+	data := &response.DashboardPerProdi{}
+	data.Detail = []response.DashboardDetailPerProdi{}
+
+	fakultasConds := ""
+	if fakultas != 0 {
+		fakultasConds = fmt.Sprintf("WHERE prodi.id_fakultas = %d", fakultas)
 	}
 
-	query := fmt.Sprintf(
-		`SELECT prodi.id AS id_prodi, kode_prodi, prodi.nama AS nama_prodi, prodi.jenjang AS jenjang_prodi,
-			fakultas.id AS id_fakultas, fakultas.nama AS nama_fakultas, COUNT(*) AS jumlah FROM %s
-			JOIN dosen ON dosen.id = %s.id_dosen
-			JOIN prodi ON prodi.id = dosen.id_prodi
-			JOIN fakultas ON fakultas.id = dosen.id_fakultas
-			%s GROUP BY prodi.id ORDER BY prodi.id;`,
-		fitur, fitur, condition,
-	)
+	dosen := []struct {
+		Jumlah    int
+		KodeProdi int
+		Prodi     string
+		Jenjang   string
+	}{}
 
-	if err := db.WithContext(ctx).Raw(query).Find(&data).Error; err != nil {
+	dosenQuery := fmt.Sprintf(`
+	SELECT COUNT(dosen.id) as jumlah, prodi.kode_prodi, prodi.nama as prodi, prodi.jenjang FROM prodi
+	left JOIN dosen ON dosen.id_prodi = prodi.id
+	%s GROUP BY prodi.id ORDER BY prodi.id
+	`, fakultasConds)
+	if err := db.WithContext(ctx).Raw(dosenQuery).Find(&dosen).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
+
+	query := func(fitur string) string {
+		condition := createTahunCondition(fitur, queryParams.Tahun)
+		if fitur == "publikasi" && condition != "" {
+			splitTahun := strings.Split(condition, " OR ")
+			condition = splitTahun[0] + " OR " + "publikasi.id_dosen = dosen.id AND " + splitTahun[1]
+		}
+
+		return fmt.Sprintf(
+			`SELECT COUNT(%s.id) FROM prodi
+			LEFT JOIN dosen ON dosen.id_prodi = prodi.id
+			LEFT JOIN %s ON %s.id_dosen = dosen.id %s
+			%s
+			GROUP BY prodi.id ORDER BY prodi.id;`,
+			fitur, fitur, fitur, condition, fakultasConds,
+		)
+	}
+
+	// get publikasi data
+	publikasi := []int{}
+	if err := db.WithContext(ctx).Raw(query("publikasi")).Find(&publikasi).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	// get paten data
+	paten := []int{}
+	if err := db.WithContext(ctx).Raw(query("paten")).Find(&paten).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	// get pengabdian data
+	pengabdian := []int{}
+	if err := db.WithContext(ctx).Raw(query("pengabdian")).Find(&pengabdian).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	totalDosen := 0
+	total := 0
+	for i := 0; i < len(publikasi); i++ {
+		jumlah := publikasi[i]
+		jumlah += paten[i]
+		jumlah += pengabdian[i]
+
+		var persentase float64
+		if dosen[i].Jumlah != 0 {
+			persentase = util.RoundFloat((float64(jumlah) / float64(dosen[i].Jumlah)) * 100)
+		}
+
+		prodi := fmt.Sprintf("%d - %s (%s)", dosen[i].KodeProdi, dosen[i].Prodi, dosen[i].Jenjang)
+
+		data.Detail = append(data.Detail, response.DashboardDetailPerProdi{
+			Prodi:       prodi,
+			JumlahDosen: dosen[i].Jumlah,
+			Jumlah:      jumlah,
+			Persentase:  fmt.Sprintf("%.2f", persentase) + "%",
+		})
+
+		total += jumlah
+		totalDosen += dosen[i].Jumlah
+	}
+
+	data.Total = total
+	data.TotalDosen = totalDosen
+
+	var pencapaian float64
+	if totalDosen != 0 {
+		pencapaian = util.RoundFloat((float64(total) / float64(totalDosen)) * 100)
+	}
+
+	data.Pencapaian = fmt.Sprintf("%.2f", pencapaian) + "%"
 
 	return util.SuccessResponse(c, http.StatusOK, data)
 }
@@ -170,19 +309,23 @@ func GetDashboardUmum(c echo.Context) error {
 	return util.SuccessResponse(c, http.StatusOK, data)
 }
 
-func checkDashboardFitur(c echo.Context, fitur string) error {
-	switch fitur {
-	case "publikasi":
-		break
-	case "paten":
-		break
-	case "pengabdian":
-		break
-	default:
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "fitur tidak didukung"})
+func InsertTargetHandler(c echo.Context) error {
+	req := &request.Target{}
+	if err := c.Bind(req); err != nil {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
-	return nil
+	if err := c.Validate(req); err != nil {
+		return err
+	}
+
+	db := database.InitMySQL()
+	ctx := c.Request().Context()
+	if err := db.WithContext(ctx).Where("bagian", util.IKU5).Save(req.MapRequest()).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	return util.SuccessResponse(c, http.StatusOK, nil)
 }
 
 func createTahunCondition(fitur string, tahun int) string {
@@ -190,7 +333,7 @@ func createTahunCondition(fitur string, tahun int) string {
 		return ""
 	}
 
-	conds := "WHERE "
+	conds := "AND "
 	switch fitur {
 	case "publikasi":
 		conds += fmt.Sprintf("YEAR(tanggal_terbit) = %d OR YEAR(waktu_pelaksanaan) = %d", tahun, tahun)

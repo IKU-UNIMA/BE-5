@@ -2,19 +2,33 @@ package response
 
 type (
 	Dashboard struct {
-		ID     int    `json:"id"`
-		Nama   string `json:"nama"`
-		Jumlah int    `json:"jumlah"`
+		Target     string                       `json:"target"`
+		Total      int                          `json:"total"`
+		TotalDosen int                          `json:"total_dosen"`
+		Pencapaian string                       `json:"pencapaian"`
+		Detail     []DashboardDetailPerFakultas `json:"detail"`
 	}
 
-	DetailDashboard struct {
-		IdProdi      int    `json:"id_prodi"`
-		KodeProdi    int    `json:"kode_prodi"`
-		NamaProdi    string `json:"nama_prodi"`
-		JenjangProdi string `json:"jenjang_prodi"`
-		IdFakultas   int    `json:"id_fakultas"`
-		NamaFakultas string `json:"nama_fakultas"`
-		Jumlah       int    `json:"jumlah"`
+	DashboardDetailPerFakultas struct {
+		ID          int    `json:"id"`
+		Fakultas    string `json:"fakultas"`
+		JumlahDosen int    `json:"jumlah_dosen"`
+		Jumlah      int    `json:"jumlah"`
+		Persentase  string `json:"persentase"`
+	}
+
+	DashboardPerProdi struct {
+		Total      int                       `json:"total"`
+		TotalDosen int                       `json:"total_dosen"`
+		Pencapaian string                    `json:"pencapaian"`
+		Detail     []DashboardDetailPerProdi `json:"detail"`
+	}
+
+	DashboardDetailPerProdi struct {
+		Prodi       string `json:"prodi"`
+		JumlahDosen int    `json:"jumlah_dosen"`
+		Jumlah      int    `json:"jumlah"`
+		Persentase  string `json:"persentase"`
 	}
 
 	DashboardTotal struct {

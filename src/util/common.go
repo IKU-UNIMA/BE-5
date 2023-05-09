@@ -1,6 +1,7 @@
 package util
 
 import (
+	"math"
 	"strconv"
 
 	"github.com/golang-jwt/jwt"
@@ -21,6 +22,10 @@ func CountMin(x, y int) int {
 	}
 
 	return y
+}
+
+func RoundFloat(v float64) float64 {
+	return math.Round(v*100) / 100
 }
 
 func GetClaimsFromContext(c echo.Context) jwt.MapClaims {
