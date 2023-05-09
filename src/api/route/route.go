@@ -112,7 +112,7 @@ func InitServer() *echo.Echo {
 
 	dashboard := v1.Group("/dashboard", customMiddleware.Authentication)
 	dashboard.GET("", handler.GetDashboardHandler, customMiddleware.GrantAdminIKU5AndRektor)
-	// dashboard.GET("/detail", handler.GetDetailDashboardHandler, customMiddleware.GrantAdminIKU5AndRektor)
+	dashboard.GET("/fakultas/:id", handler.GetDashboardByFakultasHandler, customMiddleware.GrantAdminIKU5AndRektor)
 	dashboard.GET("/total", handler.GetDashboardTotalHandler, customMiddleware.GrantAdminIKU5AndRektor)
 	dashboard.GET("/umum", handler.GetDashboardUmum, customMiddleware.GrantAdminUmum)
 	dashboard.PATCH("/target", handler.InsertTargetHandler)
