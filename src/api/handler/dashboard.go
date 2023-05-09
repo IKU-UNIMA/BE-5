@@ -129,8 +129,8 @@ func GetDashboardByFakultasHandler(c echo.Context) error {
 	}
 
 	fakultas, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()

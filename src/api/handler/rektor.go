@@ -29,8 +29,8 @@ func GetAllRektorHandler(c echo.Context) error {
 
 func GetRektorByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -98,8 +98,8 @@ func InsertRektorHandler(c echo.Context) error {
 
 func EditRektorHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	request := &request.Rektor{}
@@ -153,8 +153,8 @@ func EditRektorHandler(c echo.Context) error {
 
 func DeleteRektorHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()

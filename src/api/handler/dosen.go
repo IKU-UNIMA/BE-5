@@ -80,8 +80,8 @@ func GetAllDosenHandler(c echo.Context) error {
 
 func GetDosenByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -177,8 +177,8 @@ func InsertDosenHandler(c echo.Context) error {
 
 func EditDosenHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	request := &request.Dosen{}
@@ -249,8 +249,8 @@ func EditDosenHandler(c echo.Context) error {
 
 func DeleteDosenHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()

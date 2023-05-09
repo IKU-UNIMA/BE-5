@@ -86,8 +86,8 @@ func ChangePasswordHandler(c echo.Context) error {
 
 func ResetPasswordHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()

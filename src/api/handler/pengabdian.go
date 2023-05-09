@@ -80,8 +80,8 @@ func GetAllPengabdianHandler(c echo.Context) error {
 
 func GetPengabdianByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -225,8 +225,8 @@ func InsertPengabdianHandler(c echo.Context) error {
 
 func EditPengabdianHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -348,8 +348,8 @@ func EditPengabdianHandler(c echo.Context) error {
 
 func DeletePengabdianHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
