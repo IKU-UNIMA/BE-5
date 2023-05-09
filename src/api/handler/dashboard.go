@@ -167,7 +167,7 @@ func GetDashboardByFakultasHandler(c echo.Context) error {
 		}
 
 		return fmt.Sprintf(
-			`SELECT COUNT(%s.id) AS jumlah FROM prodi
+			`SELECT COUNT(%s.id) FROM prodi
 			LEFT JOIN dosen ON dosen.id_prodi = prodi.id
 			LEFT JOIN %s ON %s.id_dosen = dosen.id %s
 			%s
