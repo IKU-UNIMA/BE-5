@@ -26,13 +26,17 @@ func GetDashboardHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 	data := &response.Dashboard{}
 
-	jumlahDosen := []int{}
-	jumlahDosenQuery := `
-	SELECT COUNT(dosen.id) FROM fakultas
+	dosen := []struct {
+		ID       int
+		Fakultas string
+		Jumlah   int
+	}{}
+	dosenQuery := `
+	SELECT fakultas.id, fakultas.nama AS fakultas, COUNT(dosen.id) AS jumlah FROM fakultas
 	left JOIN dosen ON dosen.id_fakultas = fakultas.id
 	GROUP BY fakultas.id ORDER BY fakultas.id
 	`
-	if err := db.WithContext(ctx).Raw(jumlahDosenQuery).Find(&jumlahDosen).Error; err != nil {
+	if err := db.WithContext(ctx).Raw(dosenQuery).Find(&dosen).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
@@ -55,7 +59,7 @@ func GetDashboardHandler(c echo.Context) error {
 		}
 
 		return fmt.Sprintf(
-			`SELECT fakultas.id AS id, fakultas.nama AS fakultas, COUNT(%s.id) AS jumlah FROM fakultas
+			`SELECT COUNT(%s.id) FROM fakultas
 			LEFT JOIN dosen ON dosen.id_fakultas = fakultas.id
 			LEFT JOIN %s ON %s.id_dosen = dosen.id %s
 			GROUP BY fakultas.id ORDER BY fakultas.id;`,
@@ -64,19 +68,19 @@ func GetDashboardHandler(c echo.Context) error {
 	}
 
 	// get publikasi data
-	publikasi := []response.DashboardDetailPerFakultas{}
+	publikasi := []int{}
 	if err := db.WithContext(ctx).Raw(query("publikasi")).Find(&publikasi).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	// get paten data
-	paten := []response.DashboardDetailPerFakultas{}
+	paten := []int{}
 	if err := db.WithContext(ctx).Raw(query("paten")).Find(&paten).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	// get pengabdian data
-	pengabdian := []response.DashboardDetailPerFakultas{}
+	pengabdian := []int{}
 	if err := db.WithContext(ctx).Raw(query("pengabdian")).Find(&pengabdian).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
@@ -84,24 +88,24 @@ func GetDashboardHandler(c echo.Context) error {
 	totalDosen := 0
 	total := 0
 	for i := 0; i < len(publikasi); i++ {
-		jumlah := publikasi[i].Jumlah
-		jumlah += paten[i].Jumlah
-		jumlah += pengabdian[i].Jumlah
+		jumlah := publikasi[i]
+		jumlah += paten[i]
+		jumlah += pengabdian[i]
 
 		var persentase float64
-		if jumlahDosen[i] != 0 {
-			persentase = util.RoundFloat((float64(jumlah) / float64(jumlahDosen[i])) * 100)
+		if dosen[i].Jumlah != 0 {
+			persentase = util.RoundFloat((float64(jumlah) / float64(dosen[i].Jumlah)) * 100)
 		}
 
 		data.Detail = append(data.Detail, response.DashboardDetailPerFakultas{
-			ID:          publikasi[i].ID,
-			Fakultas:    publikasi[i].Fakultas,
-			JumlahDosen: jumlahDosen[i],
+			ID:          dosen[i].ID,
+			Fakultas:    dosen[i].Fakultas,
+			JumlahDosen: dosen[i].Jumlah,
 			Jumlah:      jumlah,
 			Persentase:  fmt.Sprintf("%.2f", persentase) + "%",
 		})
 
-		totalDosen += jumlahDosen[i]
+		totalDosen += dosen[i].Jumlah
 		total += jumlah
 	}
 
