@@ -29,8 +29,8 @@ func GetAllAdminHandler(c echo.Context) error {
 
 func GetAdminByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -98,8 +98,8 @@ func InsertAdminHandler(c echo.Context) error {
 
 func EditAdminHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	request := &request.Admin{}
@@ -153,8 +153,8 @@ func EditAdminHandler(c echo.Context) error {
 
 func DeleteAdminHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()

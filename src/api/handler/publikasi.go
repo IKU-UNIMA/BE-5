@@ -81,8 +81,8 @@ func GetAllPublikasiHandler(c echo.Context) error {
 
 func GetPublikasiByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -221,8 +221,8 @@ func InsertPublikasiHandler(c echo.Context) error {
 
 func EditPublikasiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -344,8 +344,8 @@ func EditPublikasiHandler(c echo.Context) error {
 
 func DeletePublikasiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()

@@ -36,8 +36,8 @@ func GetAllProdiHandler(c echo.Context) error {
 
 func GetProdiByIdHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
@@ -83,8 +83,8 @@ func InsertProdiHandler(c echo.Context) error {
 
 func EditProdiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	request := &request.Prodi{}
@@ -122,8 +122,8 @@ func EditProdiHandler(c echo.Context) error {
 
 func DeleteProdiHandler(c echo.Context) error {
 	id, err := util.GetId(c)
-	if err != "" {
-		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err})
+	if err != nil {
+		return err
 	}
 
 	db := database.InitMySQL()
