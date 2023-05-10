@@ -110,9 +110,9 @@ func InitServer() *echo.Echo {
 	pengabdian.PUT("/dokumen/:id", handler.EditDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	pengabdian.DELETE("/dokumen/:id", handler.DeleteDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 
-	dashboard := v1.Group("/dashboard")
+	dashboard := v1.Group("/dashboard", customMiddleware.Authentication)
 	dashboard.GET("", handler.GetDashboardHandler, customMiddleware.GrantAdminIKU5AndRektor)
-	dashboard.GET("/fakultas/:id", handler.GetDashboardByFakultasHandler)
+	dashboard.GET("/fakultas/:id", handler.GetDashboardByFakultasHandler, customMiddleware.GrantAdminIKU5AndRektor)
 	dashboard.GET("/total", handler.GetDashboardTotalHandler, customMiddleware.GrantAdminIKU5AndRektor)
 	dashboard.GET("/umum", handler.GetDashboardUmum, customMiddleware.GrantAdminUmum)
 	dashboard.PATCH("/target", handler.InsertTargetHandler)
