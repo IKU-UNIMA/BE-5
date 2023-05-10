@@ -41,10 +41,10 @@ func GetDashboardHandler(c echo.Context) error {
 	}
 
 	var target float64
-	targetQuery := `
+	targetQuery := fmt.Sprintf(`
 	SELECT target FROM target
-	WHERE bagian = 'IKU 5'
-	`
+	WHERE bagian = 'IKU 5' AND tahun = %d
+	`, queryParams.Tahun)
 	if err := db.WithContext(ctx).Raw(targetQuery).Find(&target).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
@@ -321,7 +321,9 @@ func InsertTargetHandler(c echo.Context) error {
 
 	db := database.InitMySQL()
 	ctx := c.Request().Context()
-	if err := db.WithContext(ctx).Where("bagian", util.IKU5).Save(req.MapRequest()).Error; err != nil {
+	conds := fmt.Sprintf("bagian='%s' AND tahun=%d", util.IKU5, req.Tahun)
+
+	if err := db.WithContext(ctx).Where(conds).Save(req.MapRequest()).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 

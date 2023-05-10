@@ -30,6 +30,18 @@ func GrantAdminUmum(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func GrantAdminIKU5(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		claims := util.GetClaimsFromContext(c)
+		if claims["role"].(string) != string(util.ADMIN) ||
+			claims["bagian"].(string) != util.IKU5 {
+			return util.FailedResponse(http.StatusUnauthorized, nil)
+		}
+
+		return next(c)
+	}
+}
+
 func GrantDosen(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		claims := util.GetClaimsFromContext(c)
