@@ -160,72 +160,62 @@ func GetDashboardByFakultasHandler(c echo.Context) error {
 
 	var totalDosen, total int
 	if len(dosen) != 0 {
-		if len(dosen) == 1 && dosen[0].Jumlah == 0 {
-			prodi := fmt.Sprintf("%d - %s (%s)", dosen[0].KodeProdi, dosen[0].Prodi, dosen[0].Jenjang)
+		query := func(fitur string) string {
+			condition := createTahunCondition(fitur, queryParams.Tahun)
+			if fitur == "publikasi" && condition != "" {
+				splitTahun := strings.Split(condition, " OR ")
+				condition = splitTahun[0] + " OR " + "publikasi.id_dosen = dosen.id AND " + splitTahun[1]
+			}
+
+			return fmt.Sprintf(
+				`SELECT COUNT(%s.id) FROM prodi
+				LEFT JOIN dosen ON dosen.id_prodi = prodi.id
+				LEFT JOIN %s ON %s.id_dosen = dosen.id %s
+				%s
+				GROUP BY prodi.id ORDER BY prodi.id;`,
+				fitur, fitur, fitur, condition, fakultasConds,
+			)
+		}
+
+		// get publikasi data
+		publikasi := []int{}
+		if err := db.WithContext(ctx).Debug().Raw(query("publikasi")).Find(&publikasi).Error; err != nil {
+			return util.FailedResponse(http.StatusInternalServerError, nil)
+		}
+
+		// get paten data
+		paten := []int{}
+		if err := db.WithContext(ctx).Raw(query("paten")).Find(&paten).Error; err != nil {
+			return util.FailedResponse(http.StatusInternalServerError, nil)
+		}
+
+		// get pengabdian data
+		pengabdian := []int{}
+		if err := db.WithContext(ctx).Raw(query("pengabdian")).Find(&pengabdian).Error; err != nil {
+			return util.FailedResponse(http.StatusInternalServerError, nil)
+		}
+
+		for i := 0; i < len(publikasi); i++ {
+			jumlah := publikasi[i]
+			jumlah += paten[i]
+			jumlah += pengabdian[i]
+
+			var persentase float64
+			if dosen[i].Jumlah != 0 {
+				persentase = util.RoundFloat((float64(jumlah) / float64(dosen[i].Jumlah)) * 100)
+			}
+
+			prodi := fmt.Sprintf("%d - %s (%s)", dosen[i].KodeProdi, dosen[i].Prodi, dosen[i].Jenjang)
+
 			data.Detail = append(data.Detail, response.DashboardDetailPerProdi{
 				Prodi:       prodi,
-				JumlahDosen: 0,
-				Jumlah:      0,
-				Persentase:  fmt.Sprintf("%.2f", 0.0) + "%",
+				JumlahDosen: dosen[i].Jumlah,
+				Jumlah:      jumlah,
+				Persentase:  fmt.Sprintf("%.2f", persentase) + "%",
 			})
-		} else {
-			query := func(fitur string) string {
-				condition := createTahunCondition(fitur, queryParams.Tahun)
-				if fitur == "publikasi" && condition != "" {
-					splitTahun := strings.Split(condition, " OR ")
-					condition = splitTahun[0] + " OR " + "publikasi.id_dosen = dosen.id AND " + splitTahun[1]
-				}
 
-				return fmt.Sprintf(
-					`SELECT COUNT(%s.id) FROM prodi
-					LEFT JOIN dosen ON dosen.id_prodi = prodi.id
-					LEFT JOIN %s ON %s.id_dosen = dosen.id %s
-					%s
-					GROUP BY prodi.id ORDER BY prodi.id;`,
-					fitur, fitur, fitur, condition, fakultasConds,
-				)
-			}
-
-			// get publikasi data
-			publikasi := []int{}
-			if err := db.WithContext(ctx).Debug().Raw(query("publikasi")).Find(&publikasi).Error; err != nil {
-				return util.FailedResponse(http.StatusInternalServerError, nil)
-			}
-
-			// get paten data
-			paten := []int{}
-			if err := db.WithContext(ctx).Raw(query("paten")).Find(&paten).Error; err != nil {
-				return util.FailedResponse(http.StatusInternalServerError, nil)
-			}
-
-			// get pengabdian data
-			pengabdian := []int{}
-			if err := db.WithContext(ctx).Raw(query("pengabdian")).Find(&pengabdian).Error; err != nil {
-				return util.FailedResponse(http.StatusInternalServerError, nil)
-			}
-
-			for i := 0; i < len(publikasi); i++ {
-				jumlah := publikasi[i]
-				jumlah += paten[i]
-				jumlah += pengabdian[i]
-
-				var persentase float64
-				if dosen[i].Jumlah != 0 {
-					persentase = util.RoundFloat((float64(jumlah) / float64(dosen[i].Jumlah)) * 100)
-				}
-
-				prodi := fmt.Sprintf("%d - %s (%s)", dosen[i].KodeProdi, dosen[i].Prodi, dosen[i].Jenjang)
-
-				data.Detail = append(data.Detail, response.DashboardDetailPerProdi{
-					Prodi:       prodi,
-					JumlahDosen: dosen[i].Jumlah,
-					Jumlah:      jumlah,
-					Persentase:  fmt.Sprintf("%.2f", persentase) + "%",
-				})
-
-				total += jumlah
-				totalDosen += dosen[i].Jumlah
-			}
+			total += jumlah
+			totalDosen += dosen[i].Jumlah
 		}
 	}
 
