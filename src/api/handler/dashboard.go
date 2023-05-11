@@ -4,6 +4,7 @@ import (
 	"be-5/src/api/request"
 	"be-5/src/api/response"
 	"be-5/src/config/database"
+	"be-5/src/model"
 	"be-5/src/util"
 	"fmt"
 	"net/http"
@@ -305,6 +306,57 @@ func GetDashboardUmum(c echo.Context) error {
 	if err := db.WithContext(ctx).Raw(mahasiswaQuery).Find(data).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
+
+	return util.SuccessResponse(c, http.StatusOK, data)
+}
+
+func GetDashboardDosen(c echo.Context) error {
+	id := int(util.GetClaimsFromContext(c)["id"].(float64))
+	db := database.InitMySQL()
+	ctx := c.Request().Context()
+	data := []response.DashboardTotal{}
+	if err := db.WithContext(ctx).First(new(model.Dosen), "id", id).Error; err != nil {
+		if err.Error() == util.NOT_FOUND_ERROR {
+			return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "mahasiswa tidak ditemukan"})
+		}
+
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	query := func(fitur string) string {
+		return fmt.Sprintf(`
+		SELECT COUNT(%s.id) AS total FROM %s WHERE %s.id_dosen = %d
+		`, fitur, fitur, fitur, id)
+	}
+
+	// get publikasi
+	if err := db.Raw(query("publikasi")).Find(&data).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	data[0].Nama = "Publikasi"
+
+	// get paten
+	paten := 0
+	if err := db.Raw(query("paten")).Find(&paten).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	data = append(data, response.DashboardTotal{
+		Nama:  "Paten",
+		Total: paten,
+	})
+
+	// get paten
+	pengabdian := 0
+	if err := db.Raw(query("pengabdian")).Find(&pengabdian).Error; err != nil {
+		return util.FailedResponse(http.StatusInternalServerError, nil)
+	}
+
+	data = append(data, response.DashboardTotal{
+		Nama:  "Pengabdian",
+		Total: pengabdian,
+	})
 
 	return util.SuccessResponse(c, http.StatusOK, data)
 }
