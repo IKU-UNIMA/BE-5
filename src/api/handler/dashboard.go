@@ -180,7 +180,7 @@ func GetDashboardByFakultasHandler(c echo.Context) error {
 
 		// get publikasi data
 		publikasi := []int{}
-		if err := db.WithContext(ctx).Debug().Raw(query("publikasi")).Find(&publikasi).Error; err != nil {
+		if err := db.WithContext(ctx).Raw(query("publikasi")).Find(&publikasi).Error; err != nil {
 			return util.FailedResponse(http.StatusInternalServerError, nil)
 		}
 
