@@ -65,7 +65,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 	}
 
 	var totalResult int64
-	if err := db.WithContext(ctx).Table("pengabdian").Count(&totalResult).Error; err != nil {
+	if err := db.WithContext(ctx).Table("pengabdian").Where(condition).Count(&totalResult).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 

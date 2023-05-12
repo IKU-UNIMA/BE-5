@@ -66,7 +66,7 @@ func GetAllPublikasiHandler(c echo.Context) error {
 	}
 
 	var totalResult int64
-	if err := db.WithContext(ctx).Table("publikasi").Count(&totalResult).Error; err != nil {
+	if err := db.WithContext(ctx).Table("publikasi").Where(condition).Count(&totalResult).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
