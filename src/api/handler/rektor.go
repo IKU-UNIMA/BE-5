@@ -16,7 +16,7 @@ import (
 const getRektorQuery = "SELECT rektor.id, nama, nip, akun.email, bagian FROM rektor JOIN akun where rektor.id = rektor.id"
 
 func GetAllRektorHandler(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := []response.Rektor{}
 
@@ -33,7 +33,7 @@ func GetRektorByIdHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := &response.Rektor{}
 
@@ -59,7 +59,7 @@ func InsertRektorHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	tx := db.Begin()
 	ctx := c.Request().Context()
 	akun := &model.Akun{}
@@ -111,7 +111,7 @@ func EditRektorHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	tx := db.Begin()
 	ctx := c.Request().Context()
 
@@ -157,7 +157,7 @@ func DeleteRektorHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	query := db.WithContext(ctx).Delete(new(model.Akun), id)

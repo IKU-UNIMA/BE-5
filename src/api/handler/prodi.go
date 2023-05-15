@@ -18,7 +18,7 @@ func GetAllProdiHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "id fakultas harus berupa angka"})
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := []response.Prodi{}
 	condition := ""
@@ -40,7 +40,7 @@ func GetProdiByIdHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := &response.Prodi{}
 
@@ -65,7 +65,7 @@ func InsertProdiHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	data := request.MapRequest()
@@ -96,7 +96,7 @@ func EditProdiHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	if err := db.WithContext(ctx).First(new(model.Prodi), id).Error; err != nil {
@@ -126,7 +126,7 @@ func DeleteProdiHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	query := db.WithContext(ctx).Delete(new(model.Prodi), id)

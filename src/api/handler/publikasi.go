@@ -53,7 +53,7 @@ func GetAllPublikasiHandler(c echo.Context) error {
 		}
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	limit := 20
 	data := []response.Publikasi{}
@@ -85,7 +85,7 @@ func GetPublikasiByIdHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := &response.DetailPublikasi{}
 
@@ -125,13 +125,16 @@ func InsertPublikasiHandler(c echo.Context) error {
 	claims := util.GetClaimsFromContext(c)
 	idDosen := int(claims["id"].(float64))
 
-	db := database.InitMySQL()
+	db := database.DB
 	tx := db.Begin()
 	ctx := c.Request().Context()
 	publikasi, err := req.MapRequest()
 	if err != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
+
+	fmt.Println(req)
+	fmt.Println(publikasi)
 
 	publikasi.IdDosen = idDosen
 
@@ -225,7 +228,7 @@ func EditPublikasiHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	if err := publikasiAuthorization(c, id, db, ctx); err != nil {
@@ -348,7 +351,7 @@ func DeletePublikasiHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	if err := publikasiAuthorization(c, id, db, ctx); err != nil {
@@ -375,7 +378,7 @@ func DeletePublikasiHandler(c echo.Context) error {
 }
 
 func GetAllKategoriPublikasiHandler(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := []response.JenisKategoriPublikasi{}
 
@@ -388,7 +391,7 @@ func GetAllKategoriPublikasiHandler(c echo.Context) error {
 
 func GetDokumenPublikasiByIdHandler(c echo.Context) error {
 	id := c.Param("id")
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPublikasi := 0
@@ -421,7 +424,7 @@ func GetDokumenPublikasiByIdHandler(c echo.Context) error {
 func EditDokumenPublikasiHandler(c echo.Context) error {
 	id := c.Param("id")
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPublikasi := 0
@@ -449,7 +452,7 @@ func EditDokumenPublikasiHandler(c echo.Context) error {
 
 func DeleteDokumenPublikasiHandler(c echo.Context) error {
 	id := c.Param("id")
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPublikasi := 0

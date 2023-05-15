@@ -10,7 +10,7 @@ import (
 )
 
 func GetAllJenisDokumenHandler(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := []response.JenisDokumen{}
 

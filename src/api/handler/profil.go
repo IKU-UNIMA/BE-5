@@ -12,7 +12,7 @@ import (
 )
 
 func GetProfilHandler(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := &response.Profil{}
 	claims := util.GetClaimsFromContext(c)
@@ -40,7 +40,7 @@ func EditProfilHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := &model.Akun{}
 	claims := util.GetClaimsFromContext(c)
