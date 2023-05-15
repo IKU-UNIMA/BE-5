@@ -19,9 +19,9 @@ type (
 		TahunPelaksanaan        uint                `json:"tahun_pelaksanaan" validate:"required"`
 		LamaKegiatan            uint                `json:"lama_kegiatan" validate:"required"`
 		TahunPelaksanaanKe      uint                `json:"tahun_pelaksanaan_ke" validate:"required"`
-		DanaDariDikti           float64             `json:"dana_dari_dikti" validate:"required"`
-		DanaDariPerguruanTinggi float64             `json:"dana_dari_perguruan_tinggi" validate:"required"`
-		DanaDariInstitusiLain   float64             `json:"dana_dari_institusi_lain" validate:"required"`
+		DanaDariDikti           float64             `json:"dana_dari_dikti"`
+		DanaDariPerguruanTinggi float64             `json:"dana_dari_perguruan_tinggi"`
+		DanaDariInstitusiLain   float64             `json:"dana_dari_institusi_lain"`
 		InKind                  string              `json:"in_kind"`
 		NoSkPenugasan           string              `json:"no_sk_penugasan" validate:"required"`
 		TglSkPenugasan          string              `json:"tgl_sk_penugasan" validate:"required"`
