@@ -60,7 +60,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 		Preload("Dosen").
 		Select("id", "id_dosen", "judul", "tahun_pelaksanaan", "lama_kegiatan").
 		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
-		Where(condition).Order("created_at DESC").Find(&data).Error; err != nil {
+		Where(condition).Order("tahun_pelaksanaan DESC").Find(&data).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
