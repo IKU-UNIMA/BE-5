@@ -30,7 +30,6 @@ type (
 		Dosen                   Dosen               `gorm:"foreignKey:IdDosen;OnDelete:CASCADES"`
 		Anggota                 []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
 		Dokumen                 []DokumenPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`
-		CreatedAt               time.Time
 	}
 
 	KategoriPengabdian struct {
