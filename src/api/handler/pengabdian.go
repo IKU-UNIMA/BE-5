@@ -51,7 +51,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 		}
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	limit := 20
 	data := []response.Pengabdian{}
@@ -84,7 +84,7 @@ func GetPengabdianByIdHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := &response.DetailPengabdian{}
 
@@ -127,7 +127,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 	}
 	pengabdian.IdDosen = idDosen
 
-	db := database.InitMySQL()
+	db := database.DB
 	tx := db.Begin()
 	ctx := c.Request().Context()
 
@@ -229,7 +229,7 @@ func EditPengabdianHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	tx := db.Begin()
 	ctx := c.Request().Context()
 
@@ -352,7 +352,7 @@ func DeletePengabdianHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	if err := pengabdianAuthorization(c, id, db, ctx); err != nil {
@@ -379,7 +379,7 @@ func DeletePengabdianHandler(c echo.Context) error {
 }
 
 func GetAllKategoriPengabdianHandler(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := []response.JenisKategoriPengabdian{}
 
@@ -392,7 +392,7 @@ func GetAllKategoriPengabdianHandler(c echo.Context) error {
 
 func GetDokumenPengabdianByIdHandler(c echo.Context) error {
 	id := c.Param("id")
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPengabdian := 0
@@ -424,7 +424,7 @@ func GetDokumenPengabdianByIdHandler(c echo.Context) error {
 func EditDokumenPengabdianHandler(c echo.Context) error {
 	id := c.Param("id")
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPengabdian := 0
@@ -457,7 +457,7 @@ func DeleteDokumenPengabdianHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPengabdian := 0

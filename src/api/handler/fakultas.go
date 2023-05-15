@@ -13,7 +13,7 @@ import (
 )
 
 func GetAllFakultasHandler(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := []response.Fakultas{}
 
@@ -30,7 +30,7 @@ func GetFakultasByIdHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := &response.Fakultas{}
 
@@ -55,7 +55,7 @@ func InsertFakultasHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	if err := db.WithContext(ctx).Create(request.MapRequest()).Error; err != nil {
@@ -84,7 +84,7 @@ func EditFakultasHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	if err := db.WithContext(ctx).First(new(model.Fakultas), id).Error; err != nil {
@@ -114,7 +114,7 @@ func DeleteFakultasHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	query := db.WithContext(ctx).Delete(new(model.Fakultas), id)

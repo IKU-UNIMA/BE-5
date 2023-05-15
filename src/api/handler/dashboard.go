@@ -23,7 +23,7 @@ func GetDashboardHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := &response.Dashboard{}
 
@@ -133,7 +133,7 @@ func GetDashboardByFakultasHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := &response.DashboardPerProdi{}
 	data.Detail = []response.DashboardDetailPerProdi{}
@@ -245,7 +245,7 @@ func GetDashboardByFakultasHandler(c echo.Context) error {
 
 func GetDashboardTotalHandler(c echo.Context) error {
 	tahun := c.QueryParam("tahun")
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := []response.DashboardTotal{}
 	publikasiQuery := "SELECT COUNT(id) AS total FROM publikasi"
@@ -293,7 +293,7 @@ func GetDashboardTotalHandler(c echo.Context) error {
 }
 
 func GetDashboardUmum(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := &response.DashboardUmum{}
 	fakultasQuery := `SELECT COUNT(id) AS fakultas FROM fakultas`
@@ -322,7 +322,7 @@ func GetDashboardUmum(c echo.Context) error {
 
 func GetDashboardDosen(c echo.Context) error {
 	id := int(util.GetClaimsFromContext(c)["id"].(float64))
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := []response.DashboardTotal{}
 	if err := db.WithContext(ctx).First(new(model.Dosen), "id", id).Error; err != nil {
@@ -381,7 +381,7 @@ func InsertTargetHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	conds := fmt.Sprintf("bagian='%s' AND tahun=%d", util.IKU5, req.Tahun)
 

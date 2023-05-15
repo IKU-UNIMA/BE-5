@@ -27,7 +27,6 @@ func GetAllDosenHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
-	db := database.InitMySQL()
 	ctx := c.Request().Context()
 	result := []response.Dosen{}
 	limit := 20
@@ -58,14 +57,14 @@ func GetAllDosenHandler(c echo.Context) error {
 		}
 	}
 
-	if err := db.WithContext(ctx).Preload("Fakultas").Preload("Prodi").Where(condition).
+	if err := database.DB.WithContext(ctx).Preload("Fakultas").Preload("Prodi").Where(condition).
 		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
 		Find(&result).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	var totalResult int64
-	if err := db.WithContext(ctx).Table("dosen").Count(&totalResult).Error; err != nil {
+	if err := database.DB.WithContext(ctx).Table("dosen").Count(&totalResult).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
@@ -84,12 +83,11 @@ func GetDosenByIdHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
 	ctx := c.Request().Context()
 	result := &response.DetailDosen{}
 
 	email := ""
-	if err := db.WithContext(ctx).Table("akun").Select("email").Where("id", id).Scan(&email).Error; err != nil {
+	if err := database.DB.WithContext(ctx).Table("akun").Select("email").Where("id", id).Scan(&email).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
 			return util.FailedResponse(http.StatusNotFound, nil)
 		}
@@ -99,7 +97,7 @@ func GetDosenByIdHandler(c echo.Context) error {
 
 	result.Email = email
 
-	if err := db.WithContext(ctx).
+	if err := database.DB.WithContext(ctx).
 		Preload("Fakultas").Preload("Prodi").
 		Table("dosen").First(result, id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
@@ -122,8 +120,7 @@ func InsertDosenHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
-	tx := db.Begin()
+	tx := database.DB.Begin()
 	ctx := c.Request().Context()
 	akun := &model.Akun{}
 	akun.Email = request.Email
@@ -132,7 +129,7 @@ func InsertDosenHandler(c echo.Context) error {
 	akun.Password = util.HashPassword(password)
 
 	idFakultas := 0
-	prodiQuery := db.WithContext(ctx).
+	prodiQuery := database.DB.WithContext(ctx).
 		Table("prodi").Select("id_fakultas").Where("id", request.IdProdi).Scan(&idFakultas)
 	if prodiQuery.Error != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
@@ -190,11 +187,10 @@ func EditDosenHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
-	tx := db.Begin()
+	tx := database.DB.Begin()
 	ctx := c.Request().Context()
 
-	if err := db.WithContext(ctx).First(new(model.Dosen), id).Error; err != nil {
+	if err := database.DB.WithContext(ctx).First(new(model.Dosen), id).Error; err != nil {
 		if err.Error() == util.NOT_FOUND_ERROR {
 			return util.FailedResponse(http.StatusNotFound, nil)
 		}
@@ -203,7 +199,7 @@ func EditDosenHandler(c echo.Context) error {
 	}
 
 	idFakultas := 0
-	prodiQuery := db.WithContext(ctx).
+	prodiQuery := database.DB.WithContext(ctx).
 		Table("prodi").Select("id_fakultas").Where("id", request.IdProdi).Scan(&idFakultas)
 	if prodiQuery.Error != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
@@ -253,10 +249,9 @@ func DeleteDosenHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
 	ctx := c.Request().Context()
 
-	query := db.WithContext(ctx).Delete(new(model.Akun), id)
+	query := database.DB.WithContext(ctx).Delete(new(model.Akun), id)
 	if query.Error != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}

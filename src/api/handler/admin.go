@@ -16,7 +16,7 @@ import (
 const getAdminQuery = "SELECT admin.id, nama, nip, akun.email, bagian FROM admin JOIN akun where admin.id = akun.id"
 
 func GetAllAdminHandler(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := []response.Admin{}
 
@@ -33,7 +33,7 @@ func GetAdminByIdHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	result := &response.Admin{}
 
@@ -59,7 +59,7 @@ func InsertAdminHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	tx := db.Begin()
 	ctx := c.Request().Context()
 	akun := &model.Akun{}
@@ -111,7 +111,7 @@ func EditAdminHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	tx := db.Begin()
 	ctx := c.Request().Context()
 
@@ -157,7 +157,7 @@ func DeleteAdminHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	query := db.WithContext(ctx).Delete(new(model.Akun), id)

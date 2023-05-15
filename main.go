@@ -15,6 +15,9 @@ func main() {
 		panic(err)
 	}
 
+	// init mysql
+	database.InitMySQL()
+
 	// migrate gorm
 	database.MigrateMySQL()
 

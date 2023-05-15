@@ -52,7 +52,7 @@ func GetAllPatenHandler(c echo.Context) error {
 		}
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	limit := 20
 	data := []response.Paten{}
@@ -84,7 +84,7 @@ func GetPatenByIdHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := &response.DetailPaten{}
 
@@ -124,7 +124,7 @@ func InsertPatenHandler(c echo.Context) error {
 	claims := util.GetClaimsFromContext(c)
 	idDosen := int(claims["id"].(float64))
 
-	db := database.InitMySQL()
+	db := database.DB
 	tx := db.Begin()
 	ctx := c.Request().Context()
 	paten, err := req.MapRequest()
@@ -224,7 +224,7 @@ func EditPatenHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	if err := patenAuthorization(c, id, db, ctx); err != nil {
@@ -347,7 +347,7 @@ func DeletePatenHandler(c echo.Context) error {
 		return err
 	}
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	if err := patenAuthorization(c, id, db, ctx); err != nil {
@@ -374,7 +374,7 @@ func DeletePatenHandler(c echo.Context) error {
 }
 
 func GetAllKategoriPatenHandler(c echo.Context) error {
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 	data := []response.JenisKategoriPaten{}
 
@@ -387,7 +387,7 @@ func GetAllKategoriPatenHandler(c echo.Context) error {
 
 func GetDokumenPatenByIdHandler(c echo.Context) error {
 	id := c.Param("id")
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPaten := 0
@@ -420,7 +420,7 @@ func GetDokumenPatenByIdHandler(c echo.Context) error {
 func EditDokumenPatenHandler(c echo.Context) error {
 	id := c.Param("id")
 
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPaten := 0
@@ -448,7 +448,7 @@ func EditDokumenPatenHandler(c echo.Context) error {
 
 func DeleteDokumenPatenHandler(c echo.Context) error {
 	id := c.Param("id")
-	db := database.InitMySQL()
+	db := database.DB
 	ctx := c.Request().Context()
 
 	idPaten := 0
