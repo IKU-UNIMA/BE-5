@@ -5,7 +5,7 @@ import "be-5/src/model"
 type Admin struct {
 	Nama   string `json:"nama" validate:"required"`
 	Nip    string `json:"nip" validate:"required"`
-	Email  string `json:"email" validate:"required,email"`
+	Email  string `json:"email" validate:"required"`
 	Bagian string `json:"bagian" validate:"required"`
 }
 
