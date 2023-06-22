@@ -42,5 +42,6 @@ func (r *Paten) MapRequest() (*model.Paten, error) {
 		Isbn:              r.Isbn,
 		TautanEksternal:   r.TautanEksternal,
 		Keterangan:        r.Keterangan,
+		Status:            util.BELUM_DIVERIFIKASI,
 	}, nil
 }

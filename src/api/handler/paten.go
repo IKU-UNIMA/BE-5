@@ -36,10 +36,12 @@ func GetAllPatenHandler(c echo.Context) error {
 	role := claims["role"].(string)
 	idDosen := int(claims["id"].(float64))
 
-	condition := ""
+	var order, condition string
 	if role == string(util.DOSEN) {
+		order = "tanggal DESC"
 		condition = fmt.Sprintf("id_dosen = %d", idDosen)
 	} else {
+		order = "created_at DESC"
 		if queryParams.Tahun != 0 {
 			condition = fmt.Sprintf(`YEAR(tanggal) = %d`, queryParams.Tahun)
 		}
@@ -69,7 +71,7 @@ func GetAllPatenHandler(c echo.Context) error {
 	if err := db.WithContext(ctx).Preload("Dosen").
 		Preload("JenisPenelitian").Preload("Kategori").
 		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
-		Where(condition).Order("tanggal DESC").Find(&data).Error; err != nil {
+		Where(condition).Order(order).Find(&data).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
