@@ -20,9 +20,10 @@ import (
 )
 
 type pengabdianQueryParam struct {
-	Tahun int    `query:"tahun"`
-	Judul string `query:"Judul"`
-	Page  int    `query:"page"`
+	Tahun  int    `query:"tahun"`
+	Status string `query:"status"`
+	Judul  string `query:"Judul"`
+	Page   int    `query:"page"`
 }
 
 func GetAllPengabdianHandler(c echo.Context) error {
@@ -42,6 +43,15 @@ func GetAllPengabdianHandler(c echo.Context) error {
 		if queryParams.Tahun != 0 {
 			condition = fmt.Sprintf("tahun_pelaksanaan = %d", queryParams.Tahun)
 		}
+
+		if queryParams.Status != "" {
+			if condition != "" {
+				condition += " AND status = " + queryParams.Status
+			} else {
+				condition = "status = " + queryParams.Status
+			}
+		}
+
 		if queryParams.Judul != "" {
 			if condition != "" {
 				condition += " AND UPPER(judul) LIKE '%" + strings.ToUpper(queryParams.Judul) + "%'"
@@ -58,7 +68,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 
 	if err := db.WithContext(ctx).
 		Preload("Dosen").
-		Select("id", "id_dosen", "judul", "tahun_pelaksanaan", "lama_kegiatan").
+		Select("id", "id_dosen", "judul", "tahun_pelaksanaan", "lama_kegiatan", "status").
 		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
 		Where(condition).Order("tahun_pelaksanaan DESC").Find(&data).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)

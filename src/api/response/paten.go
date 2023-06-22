@@ -15,6 +15,7 @@ type (
 		IdJenisPenelitian int             `json:"-"`
 		Judul             string          `json:"judul"`
 		Tanggal           string          `json:"tanggal"`
+		Status            string          `json:"status"`
 		Kategori          KategoriPaten   `gorm:"foreignKey:IdKategori" json:"kategori_kegiatan"`
 		JenisPenelitian   JenisPenelitian `gorm:"foreignKey:IdJenisPenelitian" json:"jenis"`
 	}

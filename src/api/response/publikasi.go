@@ -16,6 +16,7 @@ type (
 		Judul             string            `json:"judul"`
 		TanggalTerbit     string            `json:"tanggal_terbit"`
 		WaktuPelaksanaan  string            `json:"-"`
+		Status            string            `json:"status"`
 		Kategori          KategoriPublikasi `gorm:"foreignKey:IdKategori" json:"kategori_kegiatan"`
 		JenisPenelitian   JenisPenelitian   `gorm:"foreignKey:IdJenisPenelitian" json:"jenis"`
 	}
