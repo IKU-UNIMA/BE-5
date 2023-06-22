@@ -8,16 +8,17 @@ type (
 		IdDosen           int
 		IdKategori        int
 		IdJenisPenelitian int
-		IdKategoriCapaian int             `gorm:"default:null"`
-		Judul             string          `gorm:"type:varchar(255)"`
-		Tanggal           time.Time       `gorm:"type:date"`
-		JumlahHalaman     int             `gorm:"type:smallint"`
-		Penyelenggara     string          `gorm:"type:varchar(255)"`
-		Penerbit          string          `gorm:"type:varchar(255)"`
-		Isbn              string          `gorm:"type:varchar(255)"`
-		TautanEksternal   string          `gorm:"type:text"`
-		Keterangan        string          `gorm:"type:text"`
-		Status            string          `gorm:"type:enum('Belum Diverifikasi','Draft','Tidak Terverifikasi','Terverifikasi')"`
+		IdKategoriCapaian int       `gorm:"default:null"`
+		Judul             string    `gorm:"type:varchar(255)"`
+		Tanggal           time.Time `gorm:"type:date"`
+		JumlahHalaman     int       `gorm:"type:smallint"`
+		Penyelenggara     string    `gorm:"type:varchar(255)"`
+		Penerbit          string    `gorm:"type:varchar(255)"`
+		Isbn              string    `gorm:"type:varchar(255)"`
+		TautanEksternal   string    `gorm:"type:text"`
+		Keterangan        string    `gorm:"type:text"`
+		Status            string    `gorm:"type:enum('Belum Diverifikasi','Draft','Tidak Terverifikasi','Terverifikasi')"`
+		CreatedAt         time.Time
 		Dosen             Dosen           `gorm:"foreignKey:IdDosen;constraint:OnDelete:CASCADE"`
 		Kategori          KategoriPaten   `gorm:"foreignKey:IdKategori"`
 		JenisPenelitian   JenisPenelitian `gorm:"foreignKey:IdJenisPenelitian"`
