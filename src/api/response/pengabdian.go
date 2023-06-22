@@ -16,7 +16,6 @@ type (
 		Judul            string         `json:"judul_kegiatan"`
 		TahunPelaksanaan string         `json:"tahun_pelaksanaan"`
 		LamaKegiatan     uint           `json:"lama_kegiatan"`
-		Status           string         `json:"status"`
 	}
 
 	DetailPengabdian struct {

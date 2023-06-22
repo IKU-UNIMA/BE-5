@@ -35,7 +35,6 @@ type (
 		EIssn               string             `gorm:"type:varchar(255)"`
 		Tautan              string             `gorm:"type:varchar(255)"`
 		Keterangan          string             `gorm:"type:text"`
-		Status              string             `gorm:"type:enum('Belum Divalidasi','Draft','Tidak Tervalidasi','Tervalidasi')"`
 		Kategori            KategoriPublikasi  `gorm:"foreignKey:IdKategori"`
 		Dosen               Dosen              `gorm:"foreignKey:IdDosen;OnDelete:CASCADES"`
 		JenisPenelitian     JenisPenelitian    `gorm:"foreignKey:IdJenisPenelitian"`
