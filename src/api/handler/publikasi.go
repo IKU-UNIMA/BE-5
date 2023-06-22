@@ -20,9 +20,10 @@ import (
 )
 
 type publikasiQueryParam struct {
-	Tahun int    `query:"tahun"`
-	Judul string `query:"judul"`
-	Page  int    `query:"page"`
+	Tahun  int    `query:"tahun"`
+	Status string `query:"status"`
+	Judul  string `query:"judul"`
+	Page   int    `query:"page"`
 }
 
 func GetAllPublikasiHandler(c echo.Context) error {
@@ -42,6 +43,14 @@ func GetAllPublikasiHandler(c echo.Context) error {
 		if queryParams.Tahun != 0 {
 			condition = fmt.Sprintf(`YEAR(tanggal_terbit) = %d OR YEAR(waktu_pelaksanaan) = %d`,
 				queryParams.Tahun, queryParams.Tahun)
+		}
+
+		if queryParams.Status != "" {
+			if condition != "" {
+				condition += " AND status = " + queryParams.Status
+			} else {
+				condition = "status = " + queryParams.Status
+			}
 		}
 
 		if queryParams.Judul != "" {
