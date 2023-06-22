@@ -36,10 +36,12 @@ func GetAllPengabdianHandler(c echo.Context) error {
 	role := claims["role"].(string)
 	idDosen := int(claims["id"].(float64))
 
-	condition := ""
+	var order, condition string
 	if role == string(util.DOSEN) {
+		order = "tahun_pelaksanaan DESC"
 		condition = fmt.Sprintf("id_dosen = %d", idDosen)
 	} else {
+		order = "created_at"
 		if queryParams.Tahun != 0 {
 			condition = fmt.Sprintf("tahun_pelaksanaan = %d", queryParams.Tahun)
 		}
@@ -70,7 +72,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 		Preload("Dosen").
 		Select("id", "id_dosen", "judul", "tahun_pelaksanaan", "lama_kegiatan", "status").
 		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
-		Where(condition).Order("tahun_pelaksanaan DESC").Find(&data).Error; err != nil {
+		Where(condition).Order(order).Find(&data).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 

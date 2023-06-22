@@ -64,6 +64,7 @@ func (r *Pengabdian) MapRequest() (*model.Pengabdian, error) {
 		NoSkPenugasan:           r.NoSkPenugasan,
 		TglSkPenugasan:          tglSkPenugasan,
 		MitraLitabmas:           r.MitraLitabmas,
+		Status:                  util.BELUM_DIVERIFIKASI,
 	}, nil
 }
 
