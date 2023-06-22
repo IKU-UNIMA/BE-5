@@ -100,5 +100,6 @@ func (r *Publikasi) MapRequest() (*model.Publikasi, error) {
 		EIssn:               r.EIssn,
 		Tautan:              r.Tautan,
 		Keterangan:          r.Keterangan,
+		Status:              util.BELUM_DIVERIFIKASI,
 	}, nil
 }

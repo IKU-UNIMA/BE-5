@@ -36,10 +36,12 @@ func GetAllPublikasiHandler(c echo.Context) error {
 	role := claims["role"].(string)
 	idDosen := int(claims["id"].(float64))
 
-	condition := ""
+	var order, condition string
 	if role == string(util.DOSEN) {
+		order = "tanggal_terbit DESC, waktu_pelaksanaan DESC"
 		condition = fmt.Sprintf("id_dosen = %d", idDosen)
 	} else {
+		order = "created_at DESC"
 		if queryParams.Tahun != 0 {
 			condition = fmt.Sprintf(`YEAR(tanggal_terbit) = %d OR YEAR(waktu_pelaksanaan) = %d`,
 				queryParams.Tahun, queryParams.Tahun)
@@ -70,7 +72,7 @@ func GetAllPublikasiHandler(c echo.Context) error {
 	if err := db.WithContext(ctx).Preload("Dosen").
 		Preload("JenisPenelitian").Preload("Kategori").
 		Offset(util.CountOffset(queryParams.Page, limit)).Limit(limit).
-		Where(condition).Order("tanggal_terbit DESC, waktu_pelaksanaan DESC").Find(&data).Error; err != nil {
+		Where(condition).Order(order).Find(&data).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
