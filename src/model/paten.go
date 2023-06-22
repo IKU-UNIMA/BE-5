@@ -17,7 +17,7 @@ type (
 		Isbn              string          `gorm:"type:varchar(255)"`
 		TautanEksternal   string          `gorm:"type:text"`
 		Keterangan        string          `gorm:"type:text"`
-		Status            string          `gorm:"type:enum('Belum Divalidasi','Draft','Tidak Tervalidasi','Tervalidasi')"`
+		Status            string          `gorm:"type:enum('Belum Diverifikasi','Draft','Tidak Terverifikasi','Terverifikasi')"`
 		Dosen             Dosen           `gorm:"foreignKey:IdDosen;constraint:OnDelete:CASCADE"`
 		Kategori          KategoriPaten   `gorm:"foreignKey:IdKategori"`
 		JenisPenelitian   JenisPenelitian `gorm:"foreignKey:IdJenisPenelitian"`
