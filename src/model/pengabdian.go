@@ -26,7 +26,6 @@ type (
 		NoSkPenugasan           string              `gorm:"type:varchar(255)"`
 		TglSkPenugasan          time.Time           `gorm:"type:date"`
 		MitraLitabmas           string              `gorm:"type:varchar(255)"`
-		Status                  string              `gorm:"type:enum('Belum Divalidasi','Draft','Tidak Tervalidasi','Tervalidasi')"`
 		Kategori                KategoriPengabdian  `gorm:"foreignKey:IdKategori"`
 		Dosen                   Dosen               `gorm:"foreignKey:IdDosen;OnDelete:CASCADES"`
 		Anggota                 []AnggotaPengabdian `gorm:"foreignKey:IdPengabdian;constraint:OnDelete:CASCADE"`

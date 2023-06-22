@@ -20,10 +20,9 @@ import (
 )
 
 type patenQueryParam struct {
-	Tahun  int    `query:"tahun"`
-	Status string `query:"status"`
-	Judul  string `query:"judul"`
-	Page   int    `query:"page"`
+	Tahun int    `query:"tahun"`
+	Judul string `query:"judul"`
+	Page  int    `query:"page"`
 }
 
 func GetAllPatenHandler(c echo.Context) error {
@@ -42,14 +41,6 @@ func GetAllPatenHandler(c echo.Context) error {
 	} else {
 		if queryParams.Tahun != 0 {
 			condition = fmt.Sprintf(`YEAR(tanggal) = %d`, queryParams.Tahun)
-		}
-
-		if queryParams.Status != "" {
-			if condition != "" {
-				condition += " AND status = " + queryParams.Status
-			} else {
-				condition = "status = " + queryParams.Status
-			}
 		}
 
 		if queryParams.Judul != "" {
