@@ -29,10 +29,10 @@ func VerifikasiDataHandler(c echo.Context) error {
 		return err
 	}
 	status := map[string]bool{
-		"Belum Diverifikasi":  true,
-		"Draft":               true,
-		"Tidak Terverifikasi": true,
-		"Terverifikasi":       true,
+		util.BELUM_DIVERIFIKASI:  true,
+		util.DRAFT:               true,
+		util.TIDAK_TERVERIFIKASI: true,
+		util.TERVERIFIKASI:       true,
 	}
 
 	if !status[req.Status] {

@@ -28,14 +28,15 @@ type (
 		KotaPenyelenggaraan string     `gorm:"type:varchar(255)"`
 		IsSeminar           bool
 		IsProsiding         bool
-		Bahasa              string             `gorm:"type:varchar(255)"`
-		Doi                 string             `gorm:"type:varchar(255)"`
-		Isbn                string             `gorm:"type:varchar(255)"`
-		Issn                string             `gorm:"type:varchar(255)"`
-		EIssn               string             `gorm:"type:varchar(255)"`
-		Tautan              string             `gorm:"type:varchar(255)"`
-		Keterangan          string             `gorm:"type:text"`
-		Status              string             `gorm:"type:enum('Belum Diverifikasi','Draft','Tidak Terverifikasi','Terverifikasi')"`
+		Bahasa              string `gorm:"type:varchar(255)"`
+		Doi                 string `gorm:"type:varchar(255)"`
+		Isbn                string `gorm:"type:varchar(255)"`
+		Issn                string `gorm:"type:varchar(255)"`
+		EIssn               string `gorm:"type:varchar(255)"`
+		Tautan              string `gorm:"type:varchar(255)"`
+		Keterangan          string `gorm:"type:text"`
+		Status              string `gorm:"type:enum('Belum Diverifikasi','Draft','Tidak Terverifikasi','Terverifikasi')"`
+		CreatedAt           time.Time
 		Kategori            KategoriPublikasi  `gorm:"foreignKey:IdKategori"`
 		Dosen               Dosen              `gorm:"foreignKey:IdDosen;OnDelete:CASCADES"`
 		JenisPenelitian     JenisPenelitian    `gorm:"foreignKey:IdJenisPenelitian"`
