@@ -110,6 +110,9 @@ func InitServer() *echo.Echo {
 	pengabdian.PUT("/dokumen/:id", handler.EditDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	pengabdian.DELETE("/dokumen/:id", handler.DeleteDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 
+	verif := v1.Group("/verifikasi")
+	verif.PATCH("/:fitur/:id", handler.VerifikasiDataHandler)
+
 	dashboard := v1.Group("/dashboard", customMiddleware.Authentication)
 	dashboard.GET("", handler.GetDashboardHandler, customMiddleware.GrantAdminIKU5AndRektor)
 	dashboard.GET("/fakultas/:id", handler.GetDashboardByFakultasHandler, customMiddleware.GrantAdminIKU5AndRektor)
