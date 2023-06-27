@@ -50,7 +50,7 @@ func GetAllPengabdianHandler(c echo.Context) error {
 			if condition != "" {
 				condition += fmt.Sprintf(" AND status = '%s'", queryParams.Status)
 			} else {
-				condition = fmt.Sprintf("status = '%s'" + queryParams.Status)
+				condition = fmt.Sprintf("status = '%s'", queryParams.Status)
 			}
 		}
 
