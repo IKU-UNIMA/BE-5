@@ -48,9 +48,9 @@ func GetAllPatenHandler(c echo.Context) error {
 
 		if queryParams.Status != "" {
 			if condition != "" {
-				condition += " AND status = " + queryParams.Status
+				condition += fmt.Sprintf(" AND status = '%s'", queryParams.Status)
 			} else {
-				condition = "status = " + queryParams.Status
+				condition = fmt.Sprintf("status = '%s'" + queryParams.Status)
 			}
 		}
 
