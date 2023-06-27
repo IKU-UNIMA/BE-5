@@ -110,7 +110,7 @@ func InitServer() *echo.Echo {
 	pengabdian.PUT("/dokumen/:id", handler.EditDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 	pengabdian.DELETE("/dokumen/:id", handler.DeleteDokumenPengabdianHandler, customMiddleware.GrantAdminIKU5AndDosen)
 
-	verif := v1.Group("/verifikasi")
+	verif := v1.Group("/verifikasi", customMiddleware.Authentication, customMiddleware.GrantAdminIKU5)
 	verif.PATCH("/:fitur/:id", handler.VerifikasiDataHandler)
 
 	dashboard := v1.Group("/dashboard", customMiddleware.Authentication)

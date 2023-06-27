@@ -52,7 +52,7 @@ func VerifikasiDataHandler(c echo.Context) error {
 	db := database.DB
 	ctx := c.Request().Context()
 
-	if err := db.WithContext(ctx).Table(pathParams.Fitur).Where(pathParams.ID).Update("status", req.Status); err != nil {
+	if err := db.WithContext(ctx).Table(pathParams.Fitur).Where("id", pathParams.ID).Update("status", req.Status).Error; err != nil {
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
