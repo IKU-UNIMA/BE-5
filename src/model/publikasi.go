@@ -8,24 +8,23 @@ type (
 		IdDosen             int
 		IdKategori          int
 		IdJenisPenelitian   int
-		IdKategoriCapaian   int        `gorm:"default:null"`
-		Judul               string     `gorm:"type:varchar(255)"`
-		JudulAsli           string     `gorm:"type:varchar(255)"`
-		JudulChapter        string     `gorm:"type:varchar(255)"`
-		NamaJurnal          string     `gorm:"type:varchar(255)"`
-		NamaKoranMajalah    string     `gorm:"type:varchar(255)"`
-		NamaSeminar         string     `gorm:"type:varchar(255)"`
-		TautanLamanJurnal   string     `gorm:"type:varchar(255)"`
-		TanggalTerbit       *time.Time `gorm:"type:date"`
-		WaktuPelaksanaan    *time.Time `gorm:"type:date"`
-		Volume              string     `gorm:"type:varchar(255)"`
-		Edisi               string     `gorm:"type:varchar(255)"`
-		Nomor               string     `gorm:"type:varchar(255)"`
-		Halaman             string     `gorm:"type:varchar(255)"`
-		JumlahHalaman       int        `gorm:"type:smallint"`
-		Penerbit            string     `gorm:"type:varchar(255)"`
-		Penyelenggara       string     `gorm:"type:varchar(255)"`
-		KotaPenyelenggaraan string     `gorm:"type:varchar(255)"`
+		IdKategoriCapaian   int       `gorm:"default:null"`
+		Judul               string    `gorm:"type:varchar(255)"`
+		JudulAsli           string    `gorm:"type:varchar(255)"`
+		JudulChapter        string    `gorm:"type:varchar(255)"`
+		NamaJurnal          string    `gorm:"type:varchar(255)"`
+		NamaKoranMajalah    string    `gorm:"type:varchar(255)"`
+		NamaSeminar         string    `gorm:"type:varchar(255)"`
+		TautanLamanJurnal   string    `gorm:"type:varchar(255)"`
+		TanggalTerbit       time.Time `gorm:"type:date"`
+		Volume              string    `gorm:"type:varchar(255)"`
+		Edisi               string    `gorm:"type:varchar(255)"`
+		Nomor               string    `gorm:"type:varchar(255)"`
+		Halaman             string    `gorm:"type:varchar(255)"`
+		JumlahHalaman       int       `gorm:"type:smallint"`
+		Penerbit            string    `gorm:"type:varchar(255)"`
+		Penyelenggara       string    `gorm:"type:varchar(255)"`
+		KotaPenyelenggaraan string    `gorm:"type:varchar(255)"`
 		IsSeminar           bool
 		IsProsiding         bool
 		Bahasa              string `gorm:"type:varchar(255)"`
