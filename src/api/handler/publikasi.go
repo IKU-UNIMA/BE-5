@@ -257,14 +257,67 @@ func EditPublikasiHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "penulis dosen tidak boleh kosong"})
 	}
 
-	tx := db.Begin()
 	publikasi, errMapping := req.MapRequest()
 	if errMapping != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
 	}
 
+	// mapping penulis
+	penulis := []model.PenulisPublikasi{}
+	for _, v := range req.PenulisDosen {
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPublikasi(id, "dosen"))
+	}
+
+	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPublikasi(id, "mahasiswa"))
+	}
+
+	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPublikasi(id, "lain"))
+	}
+
 	// edit publikasi
-	if err := tx.WithContext(ctx).Where("id", id).Updates(publikasi).Error; err != nil {
+	query := fmt.Sprintf(`
+	UPDATE publikasi SET
+		id_kategori=%d, id_jenis_penelitian=%d, id_kategori_capaian=%d,
+		judul='%s', judul_asli='%s', judul_chapter='%s',
+		nama_jurnal='%s', nama_koran_majalah='%s', nama_seminar='%s', tautan_laman_jurnal='%s',
+		tanggal_terbit='%s', volume='%s', edisi='%s', nomor='%s', halaman='%s', jumlah_halaman=%d,
+		penerbit='%s', penyelenggara='%s', kota_penyelenggaraan='%s', is_seminar=%t, is_prosiding=%t,
+		bahasa='%s', doi='%s', isbn='%s', issn='%s', e_issn='%s', tautan='%s', keterangan='%s'
+	WHERE id=%d
+	`, publikasi.IdKategori, publikasi.IdJenisPenelitian, publikasi.IdKategoriCapaian,
+		publikasi.Judul, publikasi.JudulAsli, publikasi.JudulChapter,
+		publikasi.NamaJurnal, publikasi.NamaKoranMajalah, publikasi.NamaSeminar, publikasi.TautanLamanJurnal,
+		req.TanggalTerbit,
+		publikasi.Volume, publikasi.Edisi, publikasi.Nomor, publikasi.Halaman, publikasi.JumlahHalaman,
+		publikasi.Penerbit, publikasi.Penyelenggara, publikasi.KotaPenyelenggaraan, publikasi.IsSeminar, publikasi.IsProsiding,
+		publikasi.Bahasa, publikasi.Doi, publikasi.Isbn, publikasi.Issn, publikasi.EIssn, publikasi.Tautan, publikasi.Keterangan,
+		id,
+	)
+
+	tx := db.Begin()
+	if err := tx.WithContext(ctx).Exec(query).Error; err != nil {
 		tx.Rollback()
 		return checkPublikasiError(c, err)
 	}
@@ -284,54 +337,8 @@ func EditPublikasiHandler(c echo.Context) error {
 		return errDokumen
 	}
 
-	// mapping penulis
-	penulis := []model.PenulisPublikasi{}
-	for _, v := range req.PenulisDosen {
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(id, "dosen"))
-	}
-
-	for _, v := range req.PenulisMahasiswa {
-		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(id, "mahasiswa"))
-	}
-
-	for _, v := range req.PenulisLain {
-		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(id, "lain"))
-	}
-
-	// delete old penulis
-	if err := tx.WithContext(ctx).Delete(new(model.PenulisPublikasi), "id_publikasi", id).Error; err != nil {
-		tx.Rollback()
-		return util.FailedResponse(http.StatusInternalServerError, nil)
-	}
-
 	// insert penulis
-	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Publikasi{ID: id}).Association("Penulis").Replace(&penulis); err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
