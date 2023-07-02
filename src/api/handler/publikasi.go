@@ -38,13 +38,12 @@ func GetAllPublikasiHandler(c echo.Context) error {
 
 	var order, condition string
 	if role == string(util.DOSEN) {
-		order = "tanggal_terbit DESC, waktu_pelaksanaan DESC"
+		order = "tanggal_terbit DESC"
 		condition = fmt.Sprintf("id_dosen = %d", idDosen)
 	} else {
 		order = "created_at DESC"
 		if queryParams.Tahun != 0 {
-			condition = fmt.Sprintf(`YEAR(tanggal_terbit) = %d OR YEAR(waktu_pelaksanaan) = %d`,
-				queryParams.Tahun, queryParams.Tahun)
+			condition = fmt.Sprintf(`YEAR(tanggal_terbit) = %d`, queryParams.Tahun)
 		}
 
 		if queryParams.Status != "" {
@@ -137,15 +136,50 @@ func InsertPublikasiHandler(c echo.Context) error {
 	idDosen := int(claims["id"].(float64))
 
 	db := database.DB
-	tx := db.Begin()
 	ctx := c.Request().Context()
 	publikasi, err := req.MapRequest()
 	if err != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
-	publikasi.IdDosen = idDosen
+	// mapping penulis
+	penulis := []model.PenulisPublikasi{}
+	for _, v := range req.PenulisDosen {
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
 
+		penulis = append(penulis, *v.MapRequestToPublikasi("dosen"))
+	}
+
+	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPublikasi("mahasiswa"))
+	}
+
+	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPublikasi("lain"))
+	}
+
+	publikasi.IdDosen = idDosen
+	publikasi.Penulis = penulis
+
+	tx := db.Begin()
 	// insert publikasi
 	if err := tx.WithContext(ctx).Create(publikasi).Error; err != nil {
 		tx.Rollback()
@@ -164,62 +198,9 @@ func InsertPublikasiHandler(c echo.Context) error {
 	})
 
 	if err != nil {
-		return err
-	}
-
-	// mapping penulis
-	penulis := []model.PenulisPublikasi{}
-	for _, v := range req.PenulisDosen {
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(publikasi.ID, "dosen"))
-	}
-
-	for _, v := range req.PenulisMahasiswa {
-		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(publikasi.ID, "mahasiswa"))
-	}
-
-	for _, v := range req.PenulisLain {
-		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(publikasi.ID, "lain"))
-	}
-
-	// insert penulis
-	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
-		if strings.Contains(err.Error(), "jenis_penulis") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
-		}
-
-		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
-		}
-
-		return util.FailedResponse(http.StatusInternalServerError, nil)
+		return err
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -257,20 +238,81 @@ func EditPublikasiHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "penulis dosen tidak boleh kosong"})
 	}
 
-	tx := db.Begin()
 	publikasi, errMapping := req.MapRequest()
 	if errMapping != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
 	}
 
+	// mapping penulis
+	penulis := []model.PenulisPublikasi{}
+	for _, v := range req.PenulisDosen {
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPublikasi("dosen"))
+	}
+
+	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPublikasi("mahasiswa"))
+	}
+
+	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPublikasi("lain"))
+	}
+
+	kategoriCapaian := ""
+	if publikasi.IdKategoriCapaian == 0 {
+		kategoriCapaian = "null"
+	} else {
+		kategoriCapaian = fmt.Sprintf("%d", publikasi.IdKategoriCapaian)
+	}
+
 	// edit publikasi
-	if err := tx.WithContext(ctx).Where("id", id).Updates(publikasi).Error; err != nil {
+	query := fmt.Sprintf(`
+	UPDATE publikasi SET
+		id_kategori=%d, id_jenis_penelitian=%d, id_kategori_capaian=%s,
+		judul='%s', judul_asli='%s', judul_chapter='%s',
+		nama_jurnal='%s', nama_koran_majalah='%s', nama_seminar='%s', tautan_laman_jurnal='%s',
+		tanggal_terbit='%s', volume='%s', edisi='%s', nomor='%s', halaman='%s', jumlah_halaman=%d,
+		penerbit='%s', penyelenggara='%s', kota_penyelenggaraan='%s', is_seminar=%t, is_prosiding=%t,
+		bahasa='%s', doi='%s', isbn='%s', issn='%s', e_issn='%s', tautan='%s', keterangan='%s'
+	WHERE id=%d
+	`, publikasi.IdKategori, publikasi.IdJenisPenelitian,
+		kategoriCapaian,
+		publikasi.Judul, publikasi.JudulAsli, publikasi.JudulChapter,
+		publikasi.NamaJurnal, publikasi.NamaKoranMajalah, publikasi.NamaSeminar, publikasi.TautanLamanJurnal,
+		req.TanggalTerbit,
+		publikasi.Volume, publikasi.Edisi, publikasi.Nomor, publikasi.Halaman, publikasi.JumlahHalaman,
+		publikasi.Penerbit, publikasi.Penyelenggara, publikasi.KotaPenyelenggaraan, publikasi.IsSeminar, publikasi.IsProsiding,
+		publikasi.Bahasa, publikasi.Doi, publikasi.Isbn, publikasi.Issn, publikasi.EIssn, publikasi.Tautan, publikasi.Keterangan,
+		id,
+	)
+
+	tx := db.Begin()
+	if err := tx.WithContext(ctx).Exec(query).Error; err != nil {
 		tx.Rollback()
 		return checkPublikasiError(c, err)
 	}
 
 	// insert dokumen
-	idDokumen, errDokumen := helper.InsertDokumen(helper.InsertDokumenParam{
+	idDokumen, err := helper.InsertDokumen(helper.InsertDokumenParam{
 		C:       c,
 		Ctx:     ctx,
 		DB:      db,
@@ -280,58 +322,21 @@ func EditPublikasiHandler(c echo.Context) error {
 		Data:    req.Dokumen,
 	})
 
-	if errDokumen != nil {
-		return errDokumen
-	}
-
-	// mapping penulis
-	penulis := []model.PenulisPublikasi{}
-	for _, v := range req.PenulisDosen {
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(id, "dosen"))
-	}
-
-	for _, v := range req.PenulisMahasiswa {
-		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(id, "mahasiswa"))
-	}
-
-	for _, v := range req.PenulisLain {
-		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPublikasi(id, "lain"))
+	if err != nil {
+		tx.Rollback()
+		helper.DeleteBatchDokumen(idDokumen)
+		return err
 	}
 
 	// delete old penulis
 	if err := tx.WithContext(ctx).Delete(new(model.PenulisPublikasi), "id_publikasi", id).Error; err != nil {
 		tx.Rollback()
+		helper.DeleteBatchDokumen(idDokumen)
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	// insert penulis
-	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Publikasi{ID: id}).Association("Penulis").Replace(&penulis); err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
@@ -542,6 +547,14 @@ func checkPublikasiError(c echo.Context, err error) error {
 
 	if strings.Contains(err.Error(), "id_jenis_penelitian") {
 		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "jenis penelitian tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "jenis_penulis") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
+	}
+
+	if strings.Contains(err.Error(), "peran") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 	}
 
 	return util.FailedResponse(http.StatusInternalServerError, nil)

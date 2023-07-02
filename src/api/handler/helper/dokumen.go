@@ -66,17 +66,17 @@ func InsertDokumen(param InsertDokumenParam) ([]string, error) {
 		for i := 0; i < minLen; i++ {
 			if err := validation.ValidateDokumen(&req[i]); err != nil {
 				param.TX.Rollback()
-				return nil, err
+				return idDokumen, err
 			}
 
 			dFile, err := storage.CreateFile(files[i], env.GetPengabdianFolderId())
 			if err != nil {
 				param.TX.Rollback()
 				if strings.Contains(err.Error(), "unsupported") {
-					return nil, util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
+					return idDokumen, util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 				}
 
-				return nil, util.FailedResponse(http.StatusInternalServerError, nil)
+				return idDokumen, util.FailedResponse(http.StatusInternalServerError, nil)
 			}
 
 			idDokumen = append(idDokumen, dFile.Id)
@@ -105,10 +105,10 @@ func InsertDokumen(param InsertDokumenParam) ([]string, error) {
 			param.TX.Rollback()
 			DeleteBatchDokumen(idDokumen)
 			if strings.Contains(err.Error(), "jenis_dokumen") {
-				return nil, util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis dokumen tidak valid"})
+				return idDokumen, util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis dokumen tidak valid"})
 			}
 
-			return nil, util.FailedResponse(http.StatusInternalServerError, nil)
+			return idDokumen, util.FailedResponse(http.StatusInternalServerError, nil)
 		}
 	}
 
