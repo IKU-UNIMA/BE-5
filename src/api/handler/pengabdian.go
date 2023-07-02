@@ -182,23 +182,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 	// insert pengabdian
 	if err := tx.WithContext(ctx).Create(pengabdian).Error; err != nil {
 		tx.Rollback()
-		if strings.Contains(err.Error(), "id_dosen") {
-			return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
-		}
-
-		if strings.Contains(err.Error(), "id_kategori") {
-			return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
-		}
-
-		if strings.Contains(err.Error(), "jenis_anggota") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis anggota tidak valid"})
-		}
-
-		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
-		}
-
-		return util.FailedResponse(http.StatusInternalServerError, nil)
+		return checkPengabdianError(c, err)
 	}
 
 	// insert dokumen
@@ -296,7 +280,7 @@ func EditPengabdianHandler(c echo.Context) error {
 	// edit pengabdian
 	if err := tx.WithContext(ctx).Omit("id_dosen").Where("id", id).Updates(pengabdian).Error; err != nil {
 		tx.Rollback()
-		return util.FailedResponse(http.StatusInternalServerError, nil)
+		return checkPengabdianError(c, err)
 	}
 
 	// insert dokumen
@@ -519,4 +503,24 @@ func pengabdianAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Co
 	}
 
 	return util.FailedResponse(http.StatusUnauthorized, nil)
+}
+
+func checkPengabdianError(c echo.Context, err error) error {
+	if strings.Contains(err.Error(), "id_dosen") {
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "id_kategori") {
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "jenis_anggota") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis anggota tidak valid"})
+	}
+
+	if strings.Contains(err.Error(), "peran") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
+	}
+
+	return util.FailedResponse(http.StatusInternalServerError, nil)
 }
