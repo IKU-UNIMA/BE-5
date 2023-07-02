@@ -21,9 +21,8 @@ func (r *Penulis) MapRequestToPublikasi(jenisPenulis string) *model.PenulisPubli
 	}
 }
 
-func (r *Penulis) MapRequestToPaten(idPaten int, jenisPenulis string) *model.PenulisPaten {
+func (r *Penulis) MapRequestToPaten(jenisPenulis string) *model.PenulisPaten {
 	return &model.PenulisPaten{
-		IdPaten:      idPaten,
 		Nama:         r.Nama,
 		JenisPenulis: jenisPenulis,
 		Urutan:       r.Urutan,

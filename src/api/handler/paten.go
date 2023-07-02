@@ -136,15 +136,50 @@ func InsertPatenHandler(c echo.Context) error {
 	idDosen := int(claims["id"].(float64))
 
 	db := database.DB
-	tx := db.Begin()
 	ctx := c.Request().Context()
 	paten, err := req.MapRequest()
 	if err != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
-	paten.IdDosen = idDosen
+	// mapping penulis
+	penulis := []model.PenulisPaten{}
+	for _, v := range req.PenulisDosen {
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
 
+		penulis = append(penulis, *v.MapRequestToPaten("dosen"))
+	}
+
+	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten("mahasiswa"))
+	}
+
+	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten("lain"))
+	}
+
+	paten.IdDosen = idDosen
+	paten.Penulis = penulis
+
+	tx := db.Begin()
 	// insert paten
 	if err := tx.WithContext(ctx).Create(paten).Error; err != nil {
 		tx.Rollback()
@@ -163,62 +198,9 @@ func InsertPatenHandler(c echo.Context) error {
 	})
 
 	if err != nil {
-		return err
-	}
-
-	// mapping penulis
-	penulis := []model.PenulisPaten{}
-	for _, v := range req.PenulisDosen {
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "dosen"))
-	}
-
-	for _, v := range req.PenulisMahasiswa {
-		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "mahasiswa"))
-	}
-
-	for _, v := range req.PenulisLain {
-		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "lain"))
-	}
-
-	// insert penulis
-	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
-		if strings.Contains(err.Error(), "jenis_penulis") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
-		}
-
-		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
-		}
-
-		return util.FailedResponse(http.StatusInternalServerError, nil)
+		return err
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -256,20 +238,74 @@ func EditPatenHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "penulis dosen tidak boleh kosong"})
 	}
 
-	tx := db.Begin()
 	paten, errMapping := req.MapRequest()
 	if errMapping != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
 	}
 
+	// mapping penulis
+	penulis := []model.PenulisPaten{}
+	for _, v := range req.PenulisDosen {
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten("dosen"))
+	}
+
+	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten("mahasiswa"))
+	}
+
+	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten("lain"))
+	}
+
+	kategoriCapaian := ""
+	if paten.IdKategoriCapaian == 0 {
+		kategoriCapaian = "null"
+	} else {
+		kategoriCapaian = fmt.Sprintf("%d", paten.IdKategoriCapaian)
+	}
+
 	// edit paten
-	if err := tx.WithContext(ctx).Where("id", id).Updates(paten).Error; err != nil {
+	query := fmt.Sprintf(`
+	UPDATE paten SET
+		id_kategori=%d, id_jenis_penelitian=%d, id_kategori_capaian=%s, judul='%s', jumlah_halaman=%d,
+		tanggal='%s', penyelenggara='%s', penerbit='%s', isbn='%s', tautan_eksternal='%s', keterangan='%s'
+	WHERE id=%d
+	`, paten.IdKategori, paten.IdJenisPenelitian,
+		kategoriCapaian,
+		paten.Judul, paten.JumlahHalaman,
+		req.Tanggal,
+		paten.Penyelenggara, paten.Penerbit, paten.Isbn, paten.TautanEksternal, paten.Keterangan,
+		id,
+	)
+
+	tx := db.Begin()
+	if err := tx.WithContext(ctx).Exec(query).Error; err != nil {
 		tx.Rollback()
 		return checkPatenError(c, err)
 	}
 
 	// insert dokumen
-	idDokumen, errDokumen := helper.InsertDokumen(helper.InsertDokumenParam{
+	idDokumen, err := helper.InsertDokumen(helper.InsertDokumenParam{
 		C:       c,
 		Ctx:     ctx,
 		DB:      db,
@@ -279,58 +315,21 @@ func EditPatenHandler(c echo.Context) error {
 		Data:    req.Dokumen,
 	})
 
-	if errDokumen != nil {
-		return errDokumen
-	}
-
-	// mapping penulis
-	penulis := []model.PenulisPaten{}
-	for _, v := range req.PenulisDosen {
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(id, "dosen"))
-	}
-
-	for _, v := range req.PenulisMahasiswa {
-		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(id, "mahasiswa"))
-	}
-
-	for _, v := range req.PenulisLain {
-		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(id, "lain"))
+	if err != nil {
+		tx.Rollback()
+		helper.DeleteBatchDokumen(idDokumen)
+		return err
 	}
 
 	// delete old penulis
 	if err := tx.WithContext(ctx).Delete(new(model.PenulisPaten), "id_paten", id).Error; err != nil {
 		tx.Rollback()
+		helper.DeleteBatchDokumen(idDokumen)
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	// insert penulis
-	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Paten{ID: id}).Association("Penulis").Replace(&penulis); err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
@@ -541,6 +540,14 @@ func checkPatenError(c echo.Context, err error) error {
 
 	if strings.Contains(err.Error(), "id_jenis_penelitian") {
 		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "jenis penelitian tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "jenis_penulis") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
+	}
+
+	if strings.Contains(err.Error(), "peran") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 	}
 
 	return util.FailedResponse(http.StatusInternalServerError, nil)
