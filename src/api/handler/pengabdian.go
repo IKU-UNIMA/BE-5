@@ -190,6 +190,14 @@ func InsertPengabdianHandler(c echo.Context) error {
 			return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
 		}
 
+		if strings.Contains(err.Error(), "jenis_anggota") {
+			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis anggota tidak valid"})
+		}
+
+		if strings.Contains(err.Error(), "peran") {
+			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
+		}
+
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
@@ -208,21 +216,6 @@ func InsertPengabdianHandler(c echo.Context) error {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		return err
-	}
-
-	// insert anggota
-	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
-		tx.Rollback()
-		helper.DeleteBatchDokumen(idDokumen)
-		if strings.Contains(err.Error(), "jenis_anggota") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis anggota tidak valid"})
-		}
-
-		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
-		}
-
-		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -330,7 +323,7 @@ func EditPengabdianHandler(c echo.Context) error {
 	}
 
 	// insert anggota
-	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Pengabdian{ID: id}).Association("Anggota").Replace(&anggota); err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_anggota") {
