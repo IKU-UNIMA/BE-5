@@ -145,7 +145,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 			return err
 		}
 
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "dosen"))
+		anggota = append(anggota, *v.MapRequest("dosen"))
 	}
 
 	for _, v := range req.AnggotaMahasiswa {
@@ -157,7 +157,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 			return err
 		}
 
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "mahasiswa"))
+		anggota = append(anggota, *v.MapRequest("mahasiswa"))
 	}
 
 	for _, v := range req.AnggotaEksternal {
@@ -169,7 +169,7 @@ func InsertPengabdianHandler(c echo.Context) error {
 			return err
 		}
 
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "eksternal"))
+		anggota = append(anggota, *v.MapRequest("eksternal"))
 	}
 
 	pengabdian.IdDosen = idDosen
@@ -265,7 +265,7 @@ func EditPengabdianHandler(c echo.Context) error {
 			return err
 		}
 
-		anggota = append(anggota, *v.MapRequest(id, "dosen"))
+		anggota = append(anggota, *v.MapRequest("dosen"))
 	}
 
 	for _, v := range req.AnggotaMahasiswa {
@@ -277,7 +277,7 @@ func EditPengabdianHandler(c echo.Context) error {
 			return err
 		}
 
-		anggota = append(anggota, *v.MapRequest(id, "mahasiswa"))
+		anggota = append(anggota, *v.MapRequest("mahasiswa"))
 	}
 
 	for _, v := range req.AnggotaEksternal {
@@ -289,7 +289,7 @@ func EditPengabdianHandler(c echo.Context) error {
 			return err
 		}
 
-		anggota = append(anggota, *v.MapRequest(id, "eksternal"))
+		anggota = append(anggota, *v.MapRequest("eksternal"))
 	}
 
 	tx := db.Begin()
