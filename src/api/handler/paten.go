@@ -277,9 +277,29 @@ func EditPatenHandler(c echo.Context) error {
 		penulis = append(penulis, *v.MapRequestToPaten("lain"))
 	}
 
-	tx := db.Begin()
+	kategoriCapaian := ""
+	if paten.IdKategoriCapaian == 0 {
+		kategoriCapaian = "null"
+	} else {
+		kategoriCapaian = fmt.Sprintf("%d", paten.IdKategoriCapaian)
+	}
+
 	// edit paten
-	if err := tx.WithContext(ctx).Where("id", id).Updates(paten).Error; err != nil {
+	query := fmt.Sprintf(`
+	UPDATE paten SET
+		id_kategori=%d, id_jenis_penelitian=%d, id_kategori_capaian=%s, judul='%s', jumlah_halaman=%d,
+		tanggal='%s', penyelenggara='%s', penerbit='%s', isbn='%s', tautan_eksternal='%s', keterangan='%s'
+	WHERE id=%d
+	`, paten.IdKategori, paten.IdJenisPenelitian,
+		kategoriCapaian,
+		paten.Judul, paten.JumlahHalaman,
+		req.Tanggal,
+		paten.Penyelenggara, paten.Penerbit, paten.Isbn, paten.TautanEksternal, paten.Keterangan,
+		id,
+	)
+
+	tx := db.Begin()
+	if err := tx.WithContext(ctx).Exec(query).Error; err != nil {
 		tx.Rollback()
 		return checkPatenError(c, err)
 	}
@@ -304,6 +324,7 @@ func EditPatenHandler(c echo.Context) error {
 	// delete old penulis
 	if err := tx.WithContext(ctx).Delete(new(model.PenulisPaten), "id_paten", id).Error; err != nil {
 		tx.Rollback()
+		helper.DeleteBatchDokumen(idDokumen)
 		return util.FailedResponse(http.StatusInternalServerError, nil)
 	}
 
