@@ -149,7 +149,7 @@ func InsertPatenHandler(c echo.Context) error {
 			return err
 		}
 
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "dosen"))
+		penulis = append(penulis, *v.MapRequestToPaten("dosen"))
 	}
 
 	for _, v := range req.PenulisMahasiswa {
@@ -161,7 +161,7 @@ func InsertPatenHandler(c echo.Context) error {
 			return err
 		}
 
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "mahasiswa"))
+		penulis = append(penulis, *v.MapRequestToPaten("mahasiswa"))
 	}
 
 	for _, v := range req.PenulisLain {
@@ -173,7 +173,7 @@ func InsertPatenHandler(c echo.Context) error {
 			return err
 		}
 
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "lain"))
+		penulis = append(penulis, *v.MapRequestToPaten("lain"))
 	}
 
 	paten.IdDosen = idDosen
@@ -263,7 +263,7 @@ func EditPatenHandler(c echo.Context) error {
 			return err
 		}
 
-		penulis = append(penulis, *v.MapRequestToPaten(id, "dosen"))
+		penulis = append(penulis, *v.MapRequestToPaten("dosen"))
 	}
 
 	for _, v := range req.PenulisMahasiswa {
@@ -275,7 +275,7 @@ func EditPatenHandler(c echo.Context) error {
 			return err
 		}
 
-		penulis = append(penulis, *v.MapRequestToPaten(id, "mahasiswa"))
+		penulis = append(penulis, *v.MapRequestToPaten("mahasiswa"))
 	}
 
 	for _, v := range req.PenulisLain {
@@ -287,7 +287,7 @@ func EditPatenHandler(c echo.Context) error {
 			return err
 		}
 
-		penulis = append(penulis, *v.MapRequestToPaten(id, "lain"))
+		penulis = append(penulis, *v.MapRequestToPaten("lain"))
 	}
 
 	tx := db.Begin()
