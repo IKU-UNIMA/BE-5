@@ -319,7 +319,7 @@ func EditPatenHandler(c echo.Context) error {
 	}
 
 	// insert penulis
-	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Paten{ID: id}).Association("Penulis").Replace(&penulis); err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_penulis") {
