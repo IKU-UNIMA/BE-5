@@ -8,7 +8,7 @@ import (
 	"be-5/src/util"
 	"fmt"
 	"net/http"
-	"strings"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -54,15 +54,10 @@ func GetDashboardHandler(c echo.Context) error {
 
 	query := func(fitur string) string {
 		condition := createTahunCondition(fitur, queryParams.Tahun)
-		if fitur == "publikasi" && condition != "" {
-			splitTahun := strings.Split(condition, " OR ")
-			condition = splitTahun[0] + " OR " + "publikasi.id_dosen = dosen.id AND " + splitTahun[1]
-		}
-
 		return fmt.Sprintf(
 			`SELECT COUNT(%s.id) FROM fakultas
 			LEFT JOIN dosen ON dosen.id_fakultas = fakultas.id
-			LEFT JOIN %s ON %s.id_dosen = dosen.id %s
+			LEFT JOIN %s ON %s.id_dosen = dosen.id AND %s
 			GROUP BY fakultas.id ORDER BY fakultas.id;`,
 			fitur, fitur, fitur, condition,
 		)
@@ -173,15 +168,11 @@ func GetDashboardByFakultasHandler(c echo.Context) error {
 	if len(dosen) != 0 {
 		query := func(fitur string) string {
 			condition := createTahunCondition(fitur, queryParams.Tahun)
-			if fitur == "publikasi" && condition != "" {
-				splitTahun := strings.Split(condition, " OR ")
-				condition = splitTahun[0] + " OR " + "publikasi.id_dosen = dosen.id AND " + splitTahun[1]
-			}
 
 			return fmt.Sprintf(
 				`SELECT COUNT(%s.id) FROM prodi
 				LEFT JOIN dosen ON dosen.id_prodi = prodi.id
-				LEFT JOIN %s ON %s.id_dosen = dosen.id %s
+				LEFT JOIN %s ON %s.id_dosen = dosen.id AND %s
 				%s
 				GROUP BY prodi.id ORDER BY prodi.id;`,
 				fitur, fitur, fitur, condition, fakultasConds,
@@ -244,19 +235,13 @@ func GetDashboardByFakultasHandler(c echo.Context) error {
 }
 
 func GetDashboardTotalHandler(c echo.Context) error {
-	tahun := c.QueryParam("tahun")
+	tahun, _ := strconv.Atoi(c.QueryParam("tahun"))
 	db := database.DB
 	ctx := c.Request().Context()
 	data := []response.DashboardTotal{}
-	publikasiQuery := "SELECT COUNT(id) AS total FROM publikasi"
-	patenQuery := "SELECT COUNT(id) AS total FROM paten"
-	pengabdianQuery := "SELECT COUNT(id) AS total FROM pengabdian"
-
-	if tahun != "" {
-		publikasiQuery += fmt.Sprintf(" WHERE YEAR(tanggal_terbit) = %s OR YEAR(waktu_pelaksanaan) = %s", tahun, tahun)
-		patenQuery += fmt.Sprintf(" WHERE YEAR(tanggal) = %s", tahun)
-		pengabdianQuery += fmt.Sprintf(" WHERE tahun_pelaksanaan = %s", tahun)
-	}
+	publikasiQuery := "SELECT COUNT(id) AS total FROM publikasi WHERE " + createTahunCondition("publikasi", tahun)
+	patenQuery := "SELECT COUNT(id) AS total FROM paten WHERE " + createTahunCondition("paten", tahun)
+	pengabdianQuery := "SELECT COUNT(id) AS total FROM pengabdian WHERE " + createTahunCondition("pengabdian", tahun)
 
 	total := 0
 	// get total publikasi
@@ -393,14 +378,10 @@ func InsertTargetHandler(c echo.Context) error {
 }
 
 func createTahunCondition(fitur string, tahun int) string {
-	if tahun < 2000 {
-		return ""
-	}
-
-	conds := "AND "
+	conds := ""
 	switch fitur {
 	case "publikasi":
-		conds += fmt.Sprintf("YEAR(tanggal_terbit) = %d OR YEAR(waktu_pelaksanaan) = %d", tahun, tahun)
+		conds += fmt.Sprintf("YEAR(tanggal_terbit) = %d", tahun)
 	case "paten":
 		conds += fmt.Sprintf("YEAR(tanggal) = %d", tahun)
 	case "pengabdian":
