@@ -276,9 +276,23 @@ func EditPengabdianHandler(c echo.Context) error {
 		anggota = append(anggota, *v.MapRequest("eksternal"))
 	}
 
-	tx := db.Begin()
 	// edit pengabdian
-	if err := tx.WithContext(ctx).Omit("id_dosen").Where("id", id).Updates(pengabdian).Error; err != nil {
+	query := fmt.Sprintf(`
+	UPDATE pengabdian SET
+		id_ketegori=%d, judul='%s', afiliasi='%s', kelompok_bidang='%s', jenis_skim='%s',lokasi_kegiatan='%s',
+		tahun_usulan=%d, tahun_kegiatan=%d, tahun_pelaksanaan=%d, lama_kegiatan=%d, tahun_pelaksanaan_ke=%d,
+		dana_dari_dikti=%.2f, dana_dari_perguruan_tinggi=%.2f, dana_dari_institusi_lain=%.2f, in_kind='%s',
+		no_sk_penugasan='%s', tgl_sk_penugasan='%s', mitra_litabmas='%s'
+	WHERE id=%d
+	`, pengabdian.IdKategori, pengabdian.Judul, pengabdian.Afiliasi, pengabdian.KelompokBidang, pengabdian.JenisSkim, pengabdian.LokasiKegiatan,
+		pengabdian.TahunUsulan, pengabdian.TahunKegiatan, pengabdian.TahunPelaksanaan, pengabdian.LamaKegiatan, pengabdian.TahunPelaksanaanKe,
+		pengabdian.DanaDariDikti, pengabdian.DanaDariPerguruanTinggi, pengabdian.DanaDariInstitusiLain, pengabdian.InKind,
+		pengabdian.NoSkPenugasan, req.TglSkPenugasan, pengabdian.MitraLitabmas,
+		id,
+	)
+
+	tx := db.Begin()
+	if err := tx.WithContext(ctx).Exec(query).Error; err != nil {
 		tx.Rollback()
 		return checkPengabdianError(c, err)
 	}
