@@ -136,15 +136,50 @@ func InsertPatenHandler(c echo.Context) error {
 	idDosen := int(claims["id"].(float64))
 
 	db := database.DB
-	tx := db.Begin()
 	ctx := c.Request().Context()
 	paten, err := req.MapRequest()
 	if err != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 
-	paten.IdDosen = idDosen
+	// mapping penulis
+	penulis := []model.PenulisPaten{}
+	for _, v := range req.PenulisDosen {
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
 
+		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "dosen"))
+	}
+
+	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "mahasiswa"))
+	}
+
+	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "lain"))
+	}
+
+	paten.IdDosen = idDosen
+	paten.Penulis = penulis
+
+	tx := db.Begin()
 	// insert paten
 	if err := tx.WithContext(ctx).Create(paten).Error; err != nil {
 		tx.Rollback()
@@ -164,46 +199,6 @@ func InsertPatenHandler(c echo.Context) error {
 
 	if err != nil {
 		return err
-	}
-
-	// mapping penulis
-	penulis := []model.PenulisPaten{}
-	for _, v := range req.PenulisDosen {
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "dosen"))
-	}
-
-	for _, v := range req.PenulisMahasiswa {
-		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "mahasiswa"))
-	}
-
-	for _, v := range req.PenulisLain {
-		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(paten.ID, "lain"))
 	}
 
 	// insert penulis
@@ -256,12 +251,46 @@ func EditPatenHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "penulis dosen tidak boleh kosong"})
 	}
 
-	tx := db.Begin()
 	paten, errMapping := req.MapRequest()
 	if errMapping != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
 	}
 
+	// mapping penulis
+	penulis := []model.PenulisPaten{}
+	for _, v := range req.PenulisDosen {
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten(id, "dosen"))
+	}
+
+	for _, v := range req.PenulisMahasiswa {
+		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten(id, "mahasiswa"))
+	}
+
+	for _, v := range req.PenulisLain {
+		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidatePenulis(&v); err != nil {
+			return err
+		}
+
+		penulis = append(penulis, *v.MapRequestToPaten(id, "lain"))
+	}
+
+	tx := db.Begin()
 	// edit paten
 	if err := tx.WithContext(ctx).Where("id", id).Updates(paten).Error; err != nil {
 		tx.Rollback()
@@ -281,46 +310,6 @@ func EditPatenHandler(c echo.Context) error {
 
 	if errDokumen != nil {
 		return errDokumen
-	}
-
-	// mapping penulis
-	penulis := []model.PenulisPaten{}
-	for _, v := range req.PenulisDosen {
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(id, "dosen"))
-	}
-
-	for _, v := range req.PenulisMahasiswa {
-		if len(req.PenulisMahasiswa) == 1 && req.PenulisMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(id, "mahasiswa"))
-	}
-
-	for _, v := range req.PenulisLain {
-		if len(req.PenulisLain) == 1 && req.PenulisLain[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidatePenulis(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		penulis = append(penulis, *v.MapRequestToPaten(id, "lain"))
 	}
 
 	// delete old penulis
