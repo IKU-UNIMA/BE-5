@@ -198,22 +198,9 @@ func InsertPatenHandler(c echo.Context) error {
 	})
 
 	if err != nil {
-		return err
-	}
-
-	// insert penulis
-	if err := tx.WithContext(ctx).Create(&penulis).Error; err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
-		if strings.Contains(err.Error(), "jenis_penulis") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
-		}
-
-		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
-		}
-
-		return util.FailedResponse(http.StatusInternalServerError, nil)
+		return err
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -298,7 +285,7 @@ func EditPatenHandler(c echo.Context) error {
 	}
 
 	// insert dokumen
-	idDokumen, errDokumen := helper.InsertDokumen(helper.InsertDokumenParam{
+	idDokumen, err := helper.InsertDokumen(helper.InsertDokumenParam{
 		C:       c,
 		Ctx:     ctx,
 		DB:      db,
@@ -308,8 +295,10 @@ func EditPatenHandler(c echo.Context) error {
 		Data:    req.Dokumen,
 	})
 
-	if errDokumen != nil {
-		return errDokumen
+	if err != nil {
+		tx.Rollback()
+		helper.DeleteBatchDokumen(idDokumen)
+		return err
 	}
 
 	// delete old penulis
@@ -530,6 +519,14 @@ func checkPatenError(c echo.Context, err error) error {
 
 	if strings.Contains(err.Error(), "id_jenis_penelitian") {
 		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "jenis penelitian tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "jenis_penulis") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis penulis tidak valid"})
+	}
+
+	if strings.Contains(err.Error(), "peran") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
 	}
 
 	return util.FailedResponse(http.StatusInternalServerError, nil)
