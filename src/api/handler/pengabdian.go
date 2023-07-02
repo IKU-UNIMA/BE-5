@@ -279,7 +279,7 @@ func EditPengabdianHandler(c echo.Context) error {
 	// edit pengabdian
 	query := fmt.Sprintf(`
 	UPDATE pengabdian SET
-		id_ketegori=%d, judul='%s', afiliasi='%s', kelompok_bidang='%s', jenis_skim='%s',lokasi_kegiatan='%s',
+		id_kategori=%d, judul='%s', afiliasi='%s', kelompok_bidang='%s', jenis_skim='%s',lokasi_kegiatan='%s',
 		tahun_usulan=%d, tahun_kegiatan=%d, tahun_pelaksanaan=%d, lama_kegiatan=%d, tahun_pelaksanaan_ke=%d,
 		dana_dari_dikti=%.2f, dana_dari_perguruan_tinggi=%.2f, dana_dari_institusi_lain=%.2f, in_kind='%s',
 		no_sk_penugasan='%s', tgl_sk_penugasan='%s', mitra_litabmas='%s'
