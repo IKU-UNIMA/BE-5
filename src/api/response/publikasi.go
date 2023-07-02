@@ -15,7 +15,6 @@ type (
 		IdJenisPenelitian int               `json:"-"`
 		Judul             string            `json:"judul"`
 		TanggalTerbit     string            `json:"tanggal_terbit"`
-		WaktuPelaksanaan  string            `json:"-"`
 		Status            string            `json:"status"`
 		Kategori          KategoriPublikasi `gorm:"foreignKey:IdKategori" json:"kategori_kegiatan"`
 		JenisPenelitian   JenisPenelitian   `gorm:"foreignKey:IdJenisPenelitian" json:"jenis"`
@@ -36,7 +35,6 @@ type (
 		NamaSeminar         string             `json:"nama_seminar"`
 		TautanLamanJurnal   string             `json:"tautan_laman_jurnal"`
 		TanggalTerbit       string             `json:"tanggal_terbit"`
-		WaktuPelaksanaan    string             `json:"waktu_pelaksanaan"`
 		Volume              string             `json:"volume"`
 		Edisi               string             `json:"edisi"`
 		Nomor               string             `json:"nomor"`
@@ -99,10 +97,6 @@ type (
 )
 
 func (p *Publikasi) AfterFind(tx *gorm.DB) (err error) {
-	if p.TanggalTerbit == "" {
-		p.TanggalTerbit = p.WaktuPelaksanaan
-	}
-
 	p.TanggalTerbit = strings.Split(p.TanggalTerbit, "T")[0]
 
 	return
@@ -110,7 +104,6 @@ func (p *Publikasi) AfterFind(tx *gorm.DB) (err error) {
 
 func (dp *DetailPublikasi) AfterFind(tx *gorm.DB) (err error) {
 	dp.TanggalTerbit = strings.Split(dp.TanggalTerbit, "T")[0]
-	dp.WaktuPelaksanaan = strings.Split(dp.WaktuPelaksanaan, "T")[0]
 	return
 }
 
