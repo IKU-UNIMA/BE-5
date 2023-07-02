@@ -68,9 +68,8 @@ func (r *Pengabdian) MapRequest() (*model.Pengabdian, error) {
 	}, nil
 }
 
-func (r *AnggotaPengabdian) MapRequest(idPengabdian int, jenisAnggota string) *model.AnggotaPengabdian {
+func (r *AnggotaPengabdian) MapRequest(jenisAnggota string) *model.AnggotaPengabdian {
 	return &model.AnggotaPengabdian{
-		IdPengabdian: idPengabdian,
 		Nama:         r.Nama,
 		JenisAnggota: jenisAnggota,
 		Peran:        r.Peran,

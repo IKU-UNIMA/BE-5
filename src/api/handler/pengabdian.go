@@ -137,24 +137,52 @@ func InsertPengabdianHandler(c echo.Context) error {
 	if err != nil {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
+
+	// mapping anggota
+	anggota := []model.AnggotaPengabdian{}
+	for _, v := range req.AnggotaDosen {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest("dosen"))
+	}
+
+	for _, v := range req.AnggotaMahasiswa {
+		if len(req.AnggotaMahasiswa) == 1 && req.AnggotaMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidateAnggota(&v); err != nil {
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest("mahasiswa"))
+	}
+
+	for _, v := range req.AnggotaEksternal {
+		if len(req.AnggotaEksternal) == 1 && req.AnggotaEksternal[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidateAnggota(&v); err != nil {
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest("eksternal"))
+	}
+
 	pengabdian.IdDosen = idDosen
+	pengabdian.Anggota = anggota
 
 	db := database.DB
-	tx := db.Begin()
 	ctx := c.Request().Context()
+	tx := db.Begin()
 
 	// insert pengabdian
 	if err := tx.WithContext(ctx).Create(pengabdian).Error; err != nil {
 		tx.Rollback()
-		if strings.Contains(err.Error(), "id_dosen") {
-			return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
-		}
-
-		if strings.Contains(err.Error(), "id_kategori") {
-			return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
-		}
-
-		return util.FailedResponse(http.StatusInternalServerError, nil)
+		return checkPengabdianError(c, err)
 	}
 
 	// insert dokumen
@@ -169,62 +197,9 @@ func InsertPengabdianHandler(c echo.Context) error {
 	})
 
 	if err != nil {
-		return err
-	}
-
-	// mapping anggota
-	anggota := []model.AnggotaPengabdian{}
-	for _, v := range req.AnggotaDosen {
-		if err := validation.ValidateAnggota(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "dosen"))
-	}
-
-	for _, v := range req.AnggotaMahasiswa {
-		if len(req.AnggotaMahasiswa) == 1 && req.AnggotaMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidateAnggota(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "mahasiswa"))
-	}
-
-	for _, v := range req.AnggotaEksternal {
-		if len(req.AnggotaEksternal) == 1 && req.AnggotaEksternal[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidateAnggota(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		anggota = append(anggota, *v.MapRequest(pengabdian.ID, "eksternal"))
-	}
-
-	// insert anggota
-	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
-		if strings.Contains(err.Error(), "jenis_anggota") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis anggota tidak valid"})
-		}
-
-		if strings.Contains(err.Error(), "peran") {
-			return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
-		}
-
-		return util.FailedResponse(http.StatusInternalServerError, nil)
+		return err
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -242,7 +217,6 @@ func EditPengabdianHandler(c echo.Context) error {
 	}
 
 	db := database.DB
-	tx := db.Begin()
 	ctx := c.Request().Context()
 
 	if err := pengabdianAuthorization(c, id, db, ctx); err != nil {
@@ -268,14 +242,63 @@ func EditPengabdianHandler(c echo.Context) error {
 		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": errMapping.Error()})
 	}
 
+	// mapping anggota
+	anggota := []model.AnggotaPengabdian{}
+	for _, v := range req.AnggotaDosen {
+		if err := validation.ValidateAnggota(&v); err != nil {
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest("dosen"))
+	}
+
+	for _, v := range req.AnggotaMahasiswa {
+		if len(req.AnggotaMahasiswa) == 1 && req.AnggotaMahasiswa[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidateAnggota(&v); err != nil {
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest("mahasiswa"))
+	}
+
+	for _, v := range req.AnggotaEksternal {
+		if len(req.AnggotaEksternal) == 1 && req.AnggotaEksternal[0].Nama == "" {
+			break
+		}
+
+		if err := validation.ValidateAnggota(&v); err != nil {
+			return err
+		}
+
+		anggota = append(anggota, *v.MapRequest("eksternal"))
+	}
+
 	// edit pengabdian
-	if err := tx.WithContext(ctx).Omit("id_dosen").Where("id", id).Updates(pengabdian).Error; err != nil {
+	query := fmt.Sprintf(`
+	UPDATE pengabdian SET
+		id_ketegori=%d, judul='%s', afiliasi='%s', kelompok_bidang='%s', jenis_skim='%s',lokasi_kegiatan='%s',
+		tahun_usulan=%d, tahun_kegiatan=%d, tahun_pelaksanaan=%d, lama_kegiatan=%d, tahun_pelaksanaan_ke=%d,
+		dana_dari_dikti=%.2f, dana_dari_perguruan_tinggi=%.2f, dana_dari_institusi_lain=%.2f, in_kind='%s',
+		no_sk_penugasan='%s', tgl_sk_penugasan='%s', mitra_litabmas='%s'
+	WHERE id=%d
+	`, pengabdian.IdKategori, pengabdian.Judul, pengabdian.Afiliasi, pengabdian.KelompokBidang, pengabdian.JenisSkim, pengabdian.LokasiKegiatan,
+		pengabdian.TahunUsulan, pengabdian.TahunKegiatan, pengabdian.TahunPelaksanaan, pengabdian.LamaKegiatan, pengabdian.TahunPelaksanaanKe,
+		pengabdian.DanaDariDikti, pengabdian.DanaDariPerguruanTinggi, pengabdian.DanaDariInstitusiLain, pengabdian.InKind,
+		pengabdian.NoSkPenugasan, req.TglSkPenugasan, pengabdian.MitraLitabmas,
+		id,
+	)
+
+	tx := db.Begin()
+	if err := tx.WithContext(ctx).Exec(query).Error; err != nil {
 		tx.Rollback()
-		return util.FailedResponse(http.StatusInternalServerError, nil)
+		return checkPengabdianError(c, err)
 	}
 
 	// insert dokumen
-	idDokumen, errDokumen := helper.InsertDokumen(helper.InsertDokumenParam{
+	idDokumen, err := helper.InsertDokumen(helper.InsertDokumenParam{
 		C:       c,
 		Ctx:     ctx,
 		DB:      db,
@@ -285,48 +308,10 @@ func EditPengabdianHandler(c echo.Context) error {
 		Data:    req.Dokumen,
 	})
 
-	if errDokumen != nil {
-		return errDokumen
-	}
-
-	// mapping anggota
-	anggota := []model.AnggotaPengabdian{}
-	for _, v := range req.AnggotaDosen {
-		if err := validation.ValidateAnggota(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		anggota = append(anggota, *v.MapRequest(id, "dosen"))
-	}
-
-	for _, v := range req.AnggotaMahasiswa {
-		if len(req.AnggotaMahasiswa) == 1 && req.AnggotaMahasiswa[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidateAnggota(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		anggota = append(anggota, *v.MapRequest(id, "mahasiswa"))
-	}
-
-	for _, v := range req.AnggotaEksternal {
-		if len(req.AnggotaEksternal) == 1 && req.AnggotaEksternal[0].Nama == "" {
-			break
-		}
-
-		if err := validation.ValidateAnggota(&v); err != nil {
-			tx.Rollback()
-			helper.DeleteBatchDokumen(idDokumen)
-			return err
-		}
-
-		anggota = append(anggota, *v.MapRequest(id, "eksternal"))
+	if err != nil {
+		tx.Rollback()
+		helper.DeleteBatchDokumen(idDokumen)
+		return err
 	}
 
 	if err := tx.WithContext(ctx).Delete(new(model.AnggotaPengabdian), "id_pengabdian", id).Error; err != nil {
@@ -336,7 +321,7 @@ func EditPengabdianHandler(c echo.Context) error {
 	}
 
 	// insert anggota
-	if err := tx.WithContext(ctx).Create(&anggota).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&model.Pengabdian{ID: id}).Association("Anggota").Replace(&anggota); err != nil {
 		tx.Rollback()
 		helper.DeleteBatchDokumen(idDokumen)
 		if strings.Contains(err.Error(), "jenis_anggota") {
@@ -532,4 +517,24 @@ func pengabdianAuthorization(c echo.Context, id int, db *gorm.DB, ctx context.Co
 	}
 
 	return util.FailedResponse(http.StatusUnauthorized, nil)
+}
+
+func checkPengabdianError(c echo.Context, err error) error {
+	if strings.Contains(err.Error(), "id_dosen") {
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "dosen tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "id_kategori") {
+		return util.FailedResponse(http.StatusNotFound, map[string]string{"message": "kategori tidak ditemukan"})
+	}
+
+	if strings.Contains(err.Error(), "jenis_anggota") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "jenis anggota tidak valid"})
+	}
+
+	if strings.Contains(err.Error(), "peran") {
+		return util.FailedResponse(http.StatusBadRequest, map[string]string{"message": "peran tidak valid"})
+	}
+
+	return util.FailedResponse(http.StatusInternalServerError, nil)
 }
